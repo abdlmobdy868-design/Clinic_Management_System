@@ -1,4 +1,4 @@
-namespace Clinic_Management_System.Models
+namespace ClinicManagementSystem.Models
 {
     public class ErrorViewModel
     {

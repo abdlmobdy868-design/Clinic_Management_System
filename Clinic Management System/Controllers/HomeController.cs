@@ -1,8 +1,8 @@
-using Clinic_Management_System.Models;
+using ClinicManagementSystem.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
-namespace Clinic_Management_System.Controllers
+namespace ClinicManagementSystem.Controllers
 {
     public class HomeController : Controller
     {
