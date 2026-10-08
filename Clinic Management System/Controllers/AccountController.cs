@@ -23,8 +23,16 @@ namespace ClinicManagementSystem.Controllers
         [HttpPost]
         public async Task<IActionResult> Register(RegisterVM vm)
         {
+          
             if (!ModelState.IsValid) return View(vm);
-            var user = new ApplicationUser { UserName = vm.UserName, Email = vm.Email };
+            var user = new ApplicationUser
+            {
+                UserName = vm.UserName,
+                FullName = vm.FullName,
+                Email = vm.Email,
+                Address = vm.Address,
+                UserType = vm.UserType
+            };
             var result = await _userManager.CreateAsync(user, vm.Password);
             if (result.Succeeded)
             {
