@@ -1,4 +1,4 @@
-﻿//using Microsoft.AspNetCore.Authorization;
+﻿
 using ClinicManagementSystem.Models;
 using ClinicManagementSystem.ViewModel;
 using Microsoft.AspNetCore.Identity;
