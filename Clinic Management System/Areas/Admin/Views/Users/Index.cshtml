@@ -1,0 +1,27 @@
+﻿@using ClinicManagementSystem.Models
+@model List<ApplicationUser>
+<div class="card-stat">
+    <div class="d-flex justify-content-between mb-3">
+        <h5>User Management</h5>
+        <a asp-action="Create" class="btn btn-primary">+ Create User</a>
+    </div>
+    <table class="table">
+        <thead><tr><th>Name</th><th>Email</th><th>Type</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+            @foreach (var u in Model)
+            {
+                <tr>
+                    <td>@u.FullName</td>
+                    <td>@u.Email</td>
+                    <td>@u.UserType</td>
+                    <td>@(u.LockoutEnd > DateTime.Now ? "Locked" : "Active")</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@u.Id" class="btn btn-sm btn-warning">Edit</a>
+                        <a asp-action="ManageRoles" asp-route-id="@u.Id" class="btn btn-sm btn-info">Roles</a>
+                        <a asp-action="LockUnlock" asp-route-id="@u.Id" class="btn btn-sm btn-danger">Lock/Unlock</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

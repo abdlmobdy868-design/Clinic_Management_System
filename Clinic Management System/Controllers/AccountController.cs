@@ -37,7 +37,7 @@ namespace ClinicManagementSystem.Controllers
             if (result.Succeeded)
             {
                 await _signInManager.SignInAsync(user, false);
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
             }
             foreach (var e in result.Errors) ModelState.AddModelError("", e.Description);
             return View(vm);
@@ -53,7 +53,7 @@ namespace ClinicManagementSystem.Controllers
             if (user != null)
             {
                 var r = await _signInManager.PasswordSignInAsync(user, vm.Password, vm.RememberMe, false);
-                if (r.Succeeded) return RedirectToAction("Index", "Home");
+                if (r.Succeeded) return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
             }
             ModelState.AddModelError("", "Invalid email or password");
             return View(vm);

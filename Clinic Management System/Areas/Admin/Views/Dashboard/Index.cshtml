@@ -1,0 +1,82 @@
+﻿@model ClinicManagementSystem.ViewModel.DashboardVM
+@using System.Text.Json
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+}
+<div class="welcome mb-4" style="background:linear-gradient(90deg,#0b6fbf,#1ecbe1); border-radius:16px; color:white; padding:22px 28px;">
+    <h5 class="fw-bold mb-1">Welcome back, Dr @User.Identity.Name 👋</h5>
+    <small>Today @DateTime.Now.ToString("dddd, dd MMMM yyyy") - You have @Model.TodayAppointments appointments today.</small>
+</div>
+<div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-xl-3"><div class="stat-card"><div class="stat-icon i-blue"><i class="fas fa-hospital-user"></i></div><div><div class="stat-value">@Model.TotalPatients</div><div class="stat-label">Patients</div></div></div></div>
+    <div class="col-12 col-sm-6 col-xl-3"><div class="stat-card"><div class="stat-icon i-teal"><i class="fas fa-user-doctor"></i></div><div><div class="stat-value">@Model.TotalDoctors</div><div class="stat-label">Doctors</div></div></div></div>
+    <div class="col-12 col-sm-6 col-xl-3"><div class="stat-card"><div class="stat-icon i-green"><i class="fas fa-calendar-check"></i></div><div><div class="stat-value">@Model.TotalAppointments</div><div class="stat-label">Total Appointments</div></div></div></div>
+    <div class="col-12 col-sm-6 col-xl-3"><div class="stat-card"><div class="stat-icon i-orange"><i class="fas fa-clock"></i></div><div><div class="stat-value">@Model.TodayAppointments</div><div class="stat-label">Today's Appointments</div></div></div></div>
+    <div class="col-12 col-sm-6 col-xl-3"><div class="stat-card"><div class="stat-icon i-green"><i class="fas fa-money-bill-trend-up"></i></div><div><div class="stat-value">@Model.TotalRevenue.ToString("N0")</div><div class="stat-label">Total Revenue (Paid)</div></div></div></div>
+    <div class="col-12 col-sm-6 col-xl-3"><div class="stat-card"><div class="stat-icon i-blue"><i class="fas fa-calendar-days"></i></div><div><div class="stat-value">@Model.ThisMonthRevenue.ToString("N0")</div><div class="stat-label">This Month Revenue</div></div></div></div>
+    <div class="col-12 col-sm-6 col-xl-3"><div class="stat-card"><div class="stat-icon i-red"><i class="fas fa-hourglass-half"></i></div><div><div class="stat-value">@Model.PendingPayments.ToString("N0")</div><div class="stat-label">Pending Payments</div></div></div></div>
+    <div class="col-12 col-sm-6 col-xl-3"><div class="stat-card"><div class="stat-icon i-purple"><i class="fas fa-star"></i></div><div><div class="stat-value">@Model.AverageRating.ToString("0.0") <small class="text-muted fs-6"> / 5</small></div><div class="stat-label">Avg. Rating (@Model.TotalReviews reviews)</div></div></div></div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-xl-8"><div class="panel"><div class="panel-title">Revenue & Appointments (last 6 months)</div><div class="chart-box"><canvas id="trendChart"></canvas></div></div></div>
+    <div class="col-12 col-md-6 col-xl-4"><div class="panel"><div class="panel-title">Appointments by Status</div><div class="chart-box sm"><canvas id="statusChart"></canvas></div></div></div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-xl-8">
+        <div class="panel">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="panel-title m-0">Recent Appointments</div>
+                <a href="/Admin/Appointments" class="btn btn-sm btn-primary">View All</a>
+            </div>
+            @if (Model.RecentAppointments.Any())
+            {
+                <div class="table-responsive"><table class="table table-clean mb-0"><thead><tr><th>#</th><th>Patient</th><th>Doctor</th><th>Date</th><th>Status</th><th class="text-end">Price</th></tr></thead><tbody>@foreach(var a in Model.RecentAppointments){
+                    <tr><td>@a.Id</td><td class="fw-semibold">@a.PatientName</td><td>@a.DoctorName</td><td>@a.DateTime.ToString("dd MMM yyyy, hh:mm tt")</td><td><span class="badge-status st-@a.Status">@a.Status</span></td><td class="text-end">@a.Price.ToString("N0")</td></tr>
+                }
+            </tbody></table></div>
+        } else
+        {
+
+            <div class="empty"><i class="fas fa-calendar-xmark fa-2x mb-2"></i><div>No appointments yet</div></div>
+        }
+    </div>
+</div>
+<div class="col-12 col-xl-4">
+    <div class="panel mb-3"><div class="panel-title">Patients by Gender</div><div class="chart-box sm"><canvas id="genderChart"></canvas></div></div>
+    <div class="panel">
+        <div class="panel-title">Top Doctors</div>
+        @if (Model.TopDoctors.Any())
+        {
+            foreach (var d in Model.TopDoctors)
+            {
+                <div class="d-flex align-items-center justify-content-between py-2 border-bottom"><div><div class="fw-semibold">@d.Name</div><small class="text-muted">@d.Specialization</small></div><div class="text-end"><div class="fw-semibold">@d.Appointments <small class="text-muted">appts</small></div><small class="rating"><i class="fas fa-star"></i> @d.Rating.ToString("0.0")</small></div></div>
+            }
+        }
+        else
+        {
+
+            <div class="empty">No doctors yet</div>
+        }
+    </div>
+</div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        const labels = @Html.Raw(JsonSerializer.Serialize(Model.MonthLabels));
+        const revenue = @Html.Raw(JsonSerializer.Serialize(Model.MonthlyRevenue));
+        const appts = @Html.Raw(JsonSerializer.Serialize(Model.MonthlyAppointments));
+        const stLabels = @Html.Raw(JsonSerializer.Serialize(Model.StatusLabels));
+        const stCounts = @Html.Raw(JsonSerializer.Serialize(Model.StatusCounts));
+        const gender = [@Model.MalePatients, @Model.FemalePatients];
+
+        new Chart(document.getElementById('trendChart'),{ data:{ labels:labels, datasets:[{type:'bar', label:'Revenue', data:revenue, backgroundColor:'rgba(13,110,253,.75)', borderRadius:8, yAxisID:'y'}, {type:'line', label:'Appointments', data:appts, borderColor:'#00b4d8', backgroundColor:'#00b4d8', tension:.35, yAxisID:'y1'}]}, options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index', intersect:false}, scales:{ y:{beginAtZero:true, position:'left', title:{display:true, text:'Revenue'}}, y1:{beginAtZero:true, position:'right', grid:{drawOnChartArea:false}, ticks:{precision:0}, title:{display:true, text:'Appointments'}}} } });
+
+        new Chart(document.getElementById('statusChart'),{ type:'doughnut', data:{ labels:stLabels, datasets:[{data:stCounts, backgroundColor:['#f5a623','#0d6efd','#16a34a','#dc3545'], borderWidth:0}]}, options:{responsive:true, maintainAspectRatio:false, cutout:'65%', plugins:{legend:{position:'bottom'}}} });
+
+        new Chart(document.getElementById('genderChart'),{ type:'pie', data:{ labels:['Male','Female'], datasets:[{data:gender, backgroundColor:['#0d6efd','#ec4899'], borderWidth:0}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}} });
+    </script>
+}

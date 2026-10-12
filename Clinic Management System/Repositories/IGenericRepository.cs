@@ -1,4 +1,5 @@
-﻿namespace ClinicManagementSystem.Repositories
+﻿using System.Collections.Generic;
+namespace ClinicManagementSystem.Repositories
 {
    
         public interface IGenericRepository<T> where T : class
