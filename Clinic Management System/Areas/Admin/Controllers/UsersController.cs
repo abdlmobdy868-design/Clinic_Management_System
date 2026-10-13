@@ -1,8 +1,8 @@
 ﻿using ClinicManagementSystem.Models;
-using ClinicManagementSystem.ViewModel;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ClinicManagementSystem.Areas.Admin.Controllers
 {
@@ -18,78 +18,84 @@ namespace ClinicManagementSystem.Areas.Admin.Controllers
             _roleManager = roleManager;
         }
 
-        public IActionResult Index() => View(_userManager.Users.ToList());
-
-        // Create User
-        public IActionResult Create() => View(new RegisterVM());
-
-        [HttpPost]
-        public async Task<IActionResult> Create(RegisterVM vm, string RoleName)
+        public async Task<IActionResult> Index()
         {
-            if (ModelState.IsValid)
-            {
-                var user = new ApplicationUser { UserName = vm.UserName, Email = vm.Email, FullName = vm.FullName, Address = vm.Address, UserType = RoleName };
-                var result = await _userManager.CreateAsync(user, vm.Password);
-                if (result.Succeeded)
-                {
-                    if (!string.IsNullOrEmpty(RoleName))
-                        await _userManager.AddToRoleAsync(user, RoleName);
-                    return RedirectToAction(nameof(Index));
-                }
-                foreach (var error in result.Errors) ModelState.AddModelError("", error.Description);
-            }
-            return View(vm);
+            var users = await _userManager.Users.ToListAsync();
+            return View(users);
         }
 
-        // Edit User
+        [HttpGet]
+        public IActionResult Create() => View();
+
+        [HttpPost]
+        public async Task<IActionResult> Create(string fullName, string email, string password, string role)
+        {
+            var user = new ApplicationUser { UserName = email, Email = email, FullName = fullName, EmailConfirmed = true, UserType = role };
+            var result = await _userManager.CreateAsync(user, password);
+            if (result.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(user, role);
+                return RedirectToAction(nameof(Index));
+            }
+            foreach (var e in result.Errors) ModelState.AddModelError("", e.Description);
+            return View();
+        }
+
+       
+        [HttpGet]
         public async Task<IActionResult> Edit(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
-            if (user == null) return NotFound();
             return View(user);
         }
         [HttpPost]
-        public async Task<IActionResult> Edit(ApplicationUser user)
-        {
-            var userFromDb = await _userManager.FindByIdAsync(user.Id);
-            userFromDb.FullName = user.FullName;
-            userFromDb.Email = user.Email;
-            userFromDb.UserName = user.UserName;
-            userFromDb.Address = user.Address;
-            await _userManager.UpdateAsync(userFromDb);
-            return RedirectToAction(nameof(Index));
-        }
-
-        // Roles Management
-        public async Task<IActionResult> ManageRoles(string id)
+        public async Task<IActionResult> Edit(string id, string fullName, string email)
         {
             var user = await _userManager.FindByIdAsync(id);
-            ViewBag.UserId = id;
-            ViewBag.UserName = user.UserName;
-            ViewBag.Roles = _roleManager.Roles.ToList();
-            var userRoles = await _userManager.GetRolesAsync(user);
-            ViewBag.UserRoles = userRoles;
-            return View();
-        }
-        [HttpPost]
-        public async Task<IActionResult> ManageRoles(string userId, List<string> selectedRoles)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            var oldRoles = await _userManager.GetRolesAsync(user);
-            await _userManager.RemoveFromRolesAsync(user, oldRoles);
-            await _userManager.AddToRolesAsync(user, selectedRoles);
+            user.FullName = fullName;
+            user.Email = email;
+            user.UserName = email;
+          
+            await _userManager.UpdateAsync(user);
             return RedirectToAction(nameof(Index));
         }
 
-        // Lock / Unlock
+        
+        [HttpGet]
+        public async Task<IActionResult> Roles(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            var allRoles = _roleManager.Roles.ToList();
+            ViewBag.UserId = id;
+            ViewBag.UserRoles = await _userManager.GetRolesAsync(user);
+            return View(allRoles);
+        }
+        [HttpPost]
+        public async Task<IActionResult> Roles(string id, string role)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            var oldRoles = await _userManager.GetRolesAsync(user);
+            await _userManager.RemoveFromRolesAsync(user, oldRoles);
+            await _userManager.AddToRoleAsync(user, role);
+            return RedirectToAction(nameof(Index));
+        }
+
+        
         public async Task<IActionResult> LockUnlock(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
             if (user.LockoutEnd != null && user.LockoutEnd > DateTime.Now)
                 user.LockoutEnd = DateTime.Now;
             else
-                user.LockoutEnd = DateTime.Now.AddYears(100);
+                user.LockoutEnd = DateTime.Now.AddYears(100); 
             await _userManager.UpdateAsync(user);
+            return RedirectToAction(nameof(Index));
+        }
+
+        public async Task<IActionResult> Delete(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user != null) await _userManager.DeleteAsync(user);
             return RedirectToAction(nameof(Index));
         }
     }

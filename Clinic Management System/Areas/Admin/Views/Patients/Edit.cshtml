@@ -1,0 +1,15 @@
+﻿@model ApplicationUser
+<div class="card p-4">
+    <h3>Update Patient</h3>
+    <form method="post">
+        <input type="hidden" name="id" value="@Model.Id" />
+        <label>Full Name</label>
+        <input name="fullName" value="@Model.FullName" class="form-control mb-2" />
+        <label>Email</label>
+        <input name="email" value="@Model.Email" class="form-control mb-2" />
+        <label>Phone</label>
+        <input name="phone" value="@Model.PhoneNumber" class="form-control mb-2" />
+        <button class="btn btn-success">Save Update</button>
+        <a asp-action="Index" class="btn btn-secondary">Back</a>
+    </form>
+</div>

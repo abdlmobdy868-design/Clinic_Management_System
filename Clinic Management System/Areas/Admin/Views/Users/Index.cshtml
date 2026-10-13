@@ -14,11 +14,13 @@
                     <td>@u.FullName</td>
                     <td>@u.Email</td>
                     <td>@u.UserType</td>
+                  
                     <td>@(u.LockoutEnd > DateTime.Now ? "Locked" : "Active")</td>
                     <td>
                         <a asp-action="Edit" asp-route-id="@u.Id" class="btn btn-sm btn-warning">Edit</a>
-                        <a asp-action="ManageRoles" asp-route-id="@u.Id" class="btn btn-sm btn-info">Roles</a>
+                      
                         <a asp-action="LockUnlock" asp-route-id="@u.Id" class="btn btn-sm btn-danger">Lock/Unlock</a>
+                        <a asp-action="Delete" asp-route-id="@u.Id" class="btn btn-sm btn-danger">Delete</a>
                     </td>
                 </tr>
             }

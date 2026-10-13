@@ -1,0 +1,48 @@
+﻿@{
+    ViewData["Title"] = "Add Patient";
+}
+
+<div class="card p-4 shadow-sm">
+    <h3 class="mb-3">Add New Patient</h3>
+
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+    <form asp-action="Create" method="post">
+        <div class="mb-2">
+            <label>Full Name</label>
+            <input name="fullName" class="form-control" required />
+        </div>
+
+        <div class="mb-2">
+            <label>Email</label>
+            <input name="email" type="email" class="form-control" required />
+        </div>
+
+        <div class="mb-2">
+            <label>Phone</label>
+            <input name="phone" class="form-control" />
+        </div>
+
+        <div class="mb-2">
+            <label>Department / القسم</label>
+            <select name="DepartmentId" class="form-control">
+                <option value="">-- اختار القسم --</option>
+                @if (ViewBag.Departments != null)
+                {
+                    foreach (var dep in ViewBag.Departments as SelectList)
+                    {
+                        <option value="@dep.Value">@dep.Text</option>
+                    }
+                }
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label>Password</label>
+            <input name="password" type="password" class="form-control" value="Patient@12345" required />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Patient</button>
+        <a asp-action="Index" class="btn btn-secondary">Back</a>
+    </form>
+</div>

@@ -1,0 +1,24 @@
+@model ClinicManagementSystem.Models.Department
+@{
+    ViewData["Title"] = "Delete Department";
+}
+<div class="card p-4">
+    <h3>Delete Department</h3>
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+    <div class="mb-3">
+        <label class="form-label">Name</label>
+        <input class="form-control" value="@Model.Name" disabled />
+    </div>
+    @if ((bool)(ViewBag.HasDoctors ?? false))
+    {
+        <div class="alert alert-warning">This department has assigned doctors and cannot be deleted.</div>
+    }
+    <form asp-action="Delete" method="post">
+        <input type="hidden" name="id" value="@Model.Id" />
+        <button class="btn btn-danger" @(ViewBag.HasDoctors?"disabled":"")>Delete</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>

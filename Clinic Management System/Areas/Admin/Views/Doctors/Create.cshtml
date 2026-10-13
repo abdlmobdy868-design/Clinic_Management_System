@@ -1,0 +1,27 @@
+﻿@model Doctor
+<div class="card p-4">
+    <h3>Add Doctor</h3>
+    <form asp-action="Create" method="post">
+        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+        <label>Doctor Name</label>
+        <input asp-for="Name" class="form-control mb-2" required />
+
+        <label>Specialization</label>
+        <input asp-for="Specialization" class="form-control mb-2" required />
+
+        <label>Clinic</label>
+        <select asp-for="DepartmentId" asp-items="ViewBag.Departments" class="form-control mb-2">
+            <option value="">-- Select Clinic --</option>
+        </select>
+
+        <hr />
+        <label>Email (for login)</label>
+        <input name="email" type="email" class="form-control mb-2" required />
+
+        <label>Password</label>
+        <input name="password" type="password" class="form-control mb-3" value="Test@12345" required />
+
+        <button type="submit" class="btn btn-primary">Save Doctor</button>
+    </form>
+</div>

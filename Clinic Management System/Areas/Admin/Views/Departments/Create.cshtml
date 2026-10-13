@@ -1,0 +1,30 @@
+@model ClinicManagementSystem.Models.Department
+@{
+    ViewData["Title"] = "Create Department";
+}
+<div class="card p-4">
+    <h3>Create Department</h3>
+    <form asp-action="Create" method="post">
+        <div class="mb-3">
+            <label class="form-label">Name</label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Clinic</label>
+            <select asp-for="ClinicId" class="form-select">
+                <option value="">-- Select Clinic --</option>
+                @foreach (var c in (ViewBag.Clinics as List<ClinicManagementSystem.Models.Clinic>))
+                {
+                    <option value="@c.Id">@c.Name</option>
+                }
+            </select>
+        </div>
+        <button class="btn btn-primary">Save</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+
+@section Scripts{
+    <partial name="_ValidationScriptsPartial" />
+}

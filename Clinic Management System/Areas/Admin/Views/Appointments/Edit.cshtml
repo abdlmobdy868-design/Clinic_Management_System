@@ -1,0 +1,14 @@
+﻿@model Appointment
+<div class="card p-4">
+    <h3>Update Appointment</h3>
+    <form method="post">
+        <input type="hidden" asp-for="Id" />
+        <label>Doctor</label>
+        <select asp-for="DoctorId" asp-items="ViewBag.Doctors" class="form-control mb-2"></select>
+        <label>Patient</label>
+        <select asp-for="PatientId" asp-items="ViewBag.Patients" class="form-control mb-2"></select>
+        <label>Date</label>
+        <input asp-for="AppointmentDateTime" type="datetime-local" class="form-control mb-2" />
+        <button class="btn btn-success">Save Update</button>
+    </form>
+</div>

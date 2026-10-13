@@ -1,0 +1,12 @@
+﻿@model ClinicManagementSystem.Models.Doctor
+<div class="card p-4">
+    <h3>Update Doctor</h3>
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="Id" />
+        <input asp-for="Name" class="form-control mb-2" placeholder="Name" />
+        <input asp-for="Specialization" class="form-control mb-2" placeholder="Specialization" />
+       
+        <button class="btn btn-success">Save Update</button>
+        <a asp-action="Index" class="btn btn-secondary">Back</a>
+    </form>
+</div>

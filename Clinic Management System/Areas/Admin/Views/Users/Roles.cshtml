@@ -1,0 +1,13 @@
+﻿@using Microsoft.AspNetCore.Identity
+@model List<IdentityRole>
+<h3>Manage Role</h3>
+<form method="post">
+    <input type="hidden" name="id" value="@ViewBag.UserId" />
+    <select name="role" class="form-control mb-2">
+        @foreach (var r in Model)
+        {
+            <option>@r.Name</option>
+        }
+    </select>
+    <button class="btn btn-info">Update Role</button>
+</form>

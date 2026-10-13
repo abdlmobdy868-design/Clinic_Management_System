@@ -120,7 +120,11 @@ namespace Clinic_Management_System.Migrations
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
 
-                    b.Property<int>("PatientId")
+                    b.Property<string>("PatientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("PatientId1")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("StartTime")
@@ -138,7 +142,7 @@ namespace Clinic_Management_System.Migrations
 
                     b.HasIndex("DoctorId");
 
-                    b.HasIndex("PatientId");
+                    b.HasIndex("PatientId1");
 
                     b.ToTable("Appointments");
                 });
@@ -199,7 +203,6 @@ namespace Clinic_Management_System.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ApplicationUserId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("DepartmentId")
@@ -637,9 +640,8 @@ namespace Clinic_Management_System.Migrations
 
                     b.HasOne("ClinicManagementSystem.Models.Patient", "Patient")
                         .WithMany()
-                        .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("PatientId1")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Clinic");
 
@@ -664,8 +666,7 @@ namespace Clinic_Management_System.Migrations
                     b.HasOne("ClinicManagementSystem.Models.ApplicationUser", "ApplicationUser")
                         .WithMany()
                         .HasForeignKey("ApplicationUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("ClinicManagementSystem.Models.Department", "Department")
                         .WithMany()

@@ -1,0 +1,27 @@
+﻿@model List<ClinicManagementSystem.Models.Doctor>
+@{
+    ViewData["Title"] = "Doctors";
+}
+<div class="card p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Doctors</h3>
+        <a asp-action="Create" class="btn btn-primary">+ Add Doctor</a>
+    </div>
+    <table class="table">
+        <thead><tr><th>Name</th><th>Specialization</th><th>Phone</th><th>Action</th></tr></thead>
+        <tbody>
+            @foreach (var d in Model)
+            {
+                <tr>
+                    <td>@d.Name</td>
+                    <td>@d.Specialization</td>
+                   
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@d.Id" class="btn btn-sm btn-warning">Update</a>
+                        <a asp-action="Delete" asp-route-id="@d.Id" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this doctor?')">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
