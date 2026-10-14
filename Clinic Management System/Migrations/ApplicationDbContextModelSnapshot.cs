@@ -159,6 +159,9 @@ namespace Clinic_Management_System.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("DepartmentId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -189,7 +192,8 @@ namespace Clinic_Management_System.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ClinicId");
+                    b.HasIndex("ClinicId")
+                        .IsUnique();
 
                     b.ToTable("Departments");
                 });
@@ -653,8 +657,8 @@ namespace Clinic_Management_System.Migrations
             modelBuilder.Entity("ClinicManagementSystem.Models.Department", b =>
                 {
                     b.HasOne("ClinicManagementSystem.Models.Clinic", "Clinic")
-                        .WithMany()
-                        .HasForeignKey("ClinicId")
+                        .WithOne("Department")
+                        .HasForeignKey("ClinicManagementSystem.Models.Department", "ClinicId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -843,6 +847,12 @@ namespace Clinic_Management_System.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ClinicManagementSystem.Models.Clinic", b =>
+                {
+                    b.Navigation("Department")
                         .IsRequired();
                 });
 #pragma warning restore 612, 618

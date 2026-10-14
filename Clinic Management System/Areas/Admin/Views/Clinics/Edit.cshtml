@@ -1,0 +1,21 @@
+﻿@model ClinicManagementSystem.Models.Clinic
+<h2>Create Clinic</h2>
+<form asp-action="Edit">
+    <div class="form-group">
+        <label>Name</label>
+        <input asp-for="Name" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Department</label>
+        <select asp-for="DepartmentId" class="form-control" asp-items="@(new SelectList(ViewBag.Departments, "Id", "Name"))"></select>
+    </div>
+    <div class="form-group">
+        <label>Address</label>
+        <input asp-for="Address" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Phone</label>
+        <input asp-for="Phone" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-success mt-2">Save Edit</button>
+</form>
