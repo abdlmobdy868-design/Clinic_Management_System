@@ -3,7 +3,7 @@
 @{
     Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
 }
-<a asp-action="Create" class="btn btn-primary mb-3">+ Add Doctor</a>
+
 <div class="welcome mb-4" style="background:linear-gradient(90deg,#0b6fbf,#1ecbe1); border-radius:16px; color:white; padding:22px 28px;">
     <h5 class="fw-bold mb-1">Welcome back, Dr @User.Identity.Name 👋</h5>
     <small>Today @DateTime.Now.ToString("dddd, dd MMMM yyyy") - You have @Model.TodayAppointments appointments today.</small>
