@@ -8,13 +8,14 @@
         <a asp-action="Create" class="btn btn-primary">+ Add Doctor</a>
     </div>
     <table class="table">
-        <thead><tr><th>Name</th><th>Specialization</th><th>Phone</th><th>Action</th></tr></thead>
+        <thead><tr><th>Name</th><th>Specialization</th><th>Action</th></tr></thead>
         <tbody>
             @foreach (var d in Model)
             {
                 <tr>
                     <td>@d.Name</td>
                     <td>@d.Specialization</td>
+                   
                    
                     <td>
                         <a asp-action="Edit" asp-route-id="@d.Id" class="btn btn-sm btn-warning">Update</a>
