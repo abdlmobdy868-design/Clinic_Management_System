@@ -1,0 +1,34 @@
+﻿:root {
+    --primary-color: #0d6efd;
+    --success-color: #198754;
+    --border-radius-custom: 1rem;
+}
+
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.table th {
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.02);
+}
+
+.form-select, .form-control {
+    padding: 0.65rem 1rem;
+    border-color: #dee2e6;
+}
+
+    .form-select:focus, .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    }
+
+.badge {
+    font-weight: 500;
+}

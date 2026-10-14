@@ -1,0 +1,95 @@
+﻿@using ClinicManagementSystem.Utilities
+@model ClinicManagementSystem.Models.Payment
+
+@{
+    ViewData["Title"] = "Payment Details";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-primary mb-0">
+            <i class="bi bi-receipt me-2"></i>Payment Receipt #@Model.Id
+        </h2>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4 me-2">
+                <i class="bi bi-arrow-left me-1"></i> Back to List
+            </a>
+            <button onclick="window.print();" class="btn btn-success rounded-pill px-4">
+                <i class="bi bi-printer me-1"></i> Print Invoice
+            </button>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-primary text-white py-3">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-cash-stack me-2"></i>Transaction Summary</h5>
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-4">
+                <!-- Patient Name -->
+                <div class="col-md-6">
+                    <label class="text-muted d-block small fw-semibold">Patient Name</label>
+                    <strong class="fs-5 text-dark">@(Model.Patient?.Name ?? Model.Appointment?.Patient?.Name ?? "N/A")</strong>
+                </div>
+
+                <!-- Doctor Name -->
+                <div class="col-md-6">
+                    <label class="text-muted d-block small fw-semibold">Attending Doctor</label>
+                    <strong class="fs-5 text-dark">Dr. @(Model.Appointment?.Doctor?.Name ?? "N/A")</strong>
+                </div>
+
+                <!-- Appointment Info -->
+                <div class="col-md-4">
+                    <label class="text-muted d-block small fw-semibold">Appointment ID</label>
+                    <span class="badge bg-info-subtle text-info-emphasis fs-6 px-3 py-2 rounded-pill mt-1">
+                        #@Model.AppointmentId
+                    </span>
+                </div>
+
+                <!-- Amount -->
+                <div class="col-md-4">
+                    <label class="text-muted d-block small fw-semibold">Amount Paid</label>
+                    <strong class="fs-4 text-success d-block mt-1">@Model.Amount.ToString("C")</strong>
+                </div>
+
+                <!-- Payment Method -->
+                <div class="col-md-4">
+                    <label class="text-muted d-block small fw-semibold">Payment Method</label>
+                    <span class="badge bg-light text-dark border fs-6 px-3 py-2 mt-1">
+                        @Model.PaymentMethod
+                    </span>
+                </div>
+
+                <!-- Payment Status -->
+                <div class="col-md-4">
+                    <label class="text-muted d-block small fw-semibold">Status</label>
+                    <div class="mt-1">
+                        @switch (Model.PaymentStatus)
+                        {
+                            case PaymentStatus.Paid:
+                                <span class="badge bg-success-subtle text-success fs-6 px-3 py-2 rounded-pill">
+                                    <i class="bi bi-check-circle me-1"></i> Paid
+                                </span>
+                                break;
+                            case PaymentStatus.Pending:
+                                <span class="badge bg-warning-subtle text-warning fs-6 px-3 py-2 rounded-pill">
+                                    <i class="bi bi-clock me-1"></i> Pending
+                                </span>
+                                break;
+                            case PaymentStatus.Failed:
+                                <span class="badge bg-danger-subtle text-danger fs-6 px-3 py-2 rounded-pill">
+                                    <i class="bi bi-x-circle me-1"></i> Failed
+                                </span>
+                                break;
+                            default:
+                                <span class="badge bg-secondary-subtle text-secondary fs-6 px-3 py-2 rounded-pill">
+                                    @Model.PaymentStatus
+                                </span>
+                                break;
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

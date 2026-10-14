@@ -11,6 +11,8 @@ namespace ClinicManagementSystem.Models
         public int AppointmentId { get; set; }
         [ForeignKey(nameof(AppointmentId))]
         public Appointment Appointment { get; set; }
+
+        public int PatientId { get; set; }
         public Patient Patient { get; set; }
 
         public decimal Amount { get; set; }

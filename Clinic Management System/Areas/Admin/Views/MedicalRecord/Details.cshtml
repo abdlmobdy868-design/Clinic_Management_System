@@ -1,0 +1,111 @@
+﻿@model ClinicManagementSystem.Models.MedicalRecord
+
+@{
+    ViewData["Title"] = "Record Details";
+    var labResults = ViewBag.LabResults as List<ClinicManagementSystem.Models.labResult>;
+}
+<head>
+    <link rel="stylesheet" href="~/css/medical-record-custom.css" asp-append-version="true" />
+</head>
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-primary mb-0"><i class="bi bi-file-earmark-medical me-2"></i>Medical Record #@Model.Id</h2>
+        <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">Back to List</a>
+    </div>
+
+    <!-- Overview Card -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <span class="text-muted d-block small">Patient Name</span>
+                    <strong class="fs-5 text-dark">@(Model.Patient?.Name ?? "N/A")</strong>
+                </div>
+                <div class="col-md-4">
+                    <span class="text-muted d-block small">Attending Doctor</span>
+                    <strong class="fs-5 text-dark">Dr. @(Model.Doctor?.Name ?? "N/A")</strong>
+                </div>
+                <div class="col-md-4">
+                    <span class="text-muted d-block small">Consultation Date</span>
+                    <strong class="fs-6 text-dark">@Model.CreatedAt.ToString("MMMM dd, yyyy - hh:mm tt")</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clinical Details Card -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-header bg-primary text-white py-3 rounded-top-4">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-stethoscope me-2"></i>Clinical Findings</h5>
+        </div>
+        <div class="card-body p-4">
+            <div class="mb-3">
+                <label class="fw-bold text-secondary">Diagnosis</label>
+                <p class="fs-5 fw-bold text-danger">@Model.Diagnosis</p>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="fw-bold text-secondary">Symptoms</label>
+                    <p class="text-dark">@(string.IsNullOrEmpty(Model.Symptoms) ? "None recorded" : Model.Symptoms)</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="fw-bold text-secondary">Vital Signs</label>
+                    <p class="text-dark">@(string.IsNullOrEmpty(Model.VitalSigns) ? "None recorded" : Model.VitalSigns)</p>
+                </div>
+                <div class="col-12">
+                    <label class="fw-bold text-secondary">Medical History</label>
+                    <p class="text-dark">@(string.IsNullOrEmpty(Model.MedicalHistory) ? "None recorded" : Model.MedicalHistory)</p>
+                </div>
+                <div class="col-12">
+                    <label class="fw-bold text-secondary">Notes</label>
+                    <p class="text-muted mb-0">@(string.IsNullOrEmpty(Model.Notes) ? "No additional notes" : Model.Notes)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Linked Lab Results Card -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-header bg-info text-white py-3 rounded-top-4 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-flask me-2"></i>Lab Results</h5>
+            <a asp-controller="Lab" asp-action="UploadResult" asp-route-medicalRecordId="@Model.Id" class="btn btn-sm btn-light rounded-pill">
+                <i class="bi bi-upload me-1"></i> Add Lab Result
+            </a>
+        </div>
+        <div class="card-body p-0">
+            @if (labResults == null || !labResults.Any())
+            {
+                <div class="p-4 text-center text-muted">No lab results attached to this record.</div>
+            }
+            else
+            {
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Test Name</th>
+                            <th>Date</th>
+                            <th class="text-center pe-4">Document</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var lab in labResults)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-bold">@(lab.LabTest?.Name ?? "N/A")</td>
+                                <td>@lab.Date.ToString("yyyy-MM-dd")</td>
+                                <td class="text-center pe-4">
+                                    @if (!string.IsNullOrEmpty(lab.ResultFileUrl))
+                                    {
+                                        <a href="@lab.ResultFileUrl" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                            <i class="bi bi-file-earmark-pdf me-1"></i> View Document
+                                        </a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>

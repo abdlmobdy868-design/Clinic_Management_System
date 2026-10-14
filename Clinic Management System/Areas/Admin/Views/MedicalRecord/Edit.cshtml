@@ -1,0 +1,79 @@
+﻿@model ClinicManagementSystem.Models.MedicalRecord
+
+@{
+    ViewData["Title"] = "Edit Medical Record";
+}
+<head>
+    <link rel="stylesheet" href="~/css/medical-record-custom.css" asp-append-version="true" />
+</head>
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-warning text-dark py-3 rounded-top-4">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-pencil-square me-2"></i>Edit Medical Record #@Model.Id</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Edit" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="CreatedAt" />
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Patient</label>
+                                <select asp-for="PatientId" class="form-select rounded-3" asp-items="ViewBag.Patients"></select>
+                                <span asp-validation-for="PatientId" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Doctor</label>
+                                <select asp-for="DoctorId" class="form-select rounded-3" asp-items="ViewBag.Doctors"></select>
+                                <span asp-validation-for="DoctorId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Appointment</label>
+                            <select asp-for="AppointmentId" class="form-select rounded-3" asp-items="ViewBag.Appointments">
+                                <option value="">-- Direct Visit (No Appointment) --</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Diagnosis" class="form-label fw-bold">Diagnosis</label>
+                            <input asp-for="Diagnosis" class="form-control rounded-3" />
+                            <span asp-validation-for="Diagnosis" class="text-danger"></span>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="Symptoms" class="form-label fw-bold">Symptoms</label>
+                                <textarea asp-for="Symptoms" class="form-control rounded-3" rows="2"></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="VitalSigns" class="form-label fw-bold">Vital Signs</label>
+                                <textarea asp-for="VitalSigns" class="form-control rounded-3" rows="2"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="MedicalHistory" class="form-label fw-bold">Medical History</label>
+                            <textarea asp-for="MedicalHistory" class="form-control rounded-3" rows="2"></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Notes" class="form-label fw-bold">Notes</label>
+                            <textarea asp-for="Notes" class="form-control rounded-3" rows="3"></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between pt-2">
+                            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+                            <button type="submit" class="btn btn-warning rounded-pill px-4">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
