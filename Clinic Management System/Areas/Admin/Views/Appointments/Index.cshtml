@@ -11,7 +11,7 @@
             {
                 <tr>
                     <td>@a.Doctor?.Name</td>
-                    <td>@a.Patient?.Name</td>
+                    <td>@(a.Patient?.Name ?? "no patient")</td>
                     <td>@a.AppointmentDateTime</td>
                     <td>@a.Status</td>
 

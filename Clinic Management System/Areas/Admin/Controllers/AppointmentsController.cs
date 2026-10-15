@@ -14,25 +14,25 @@ public class AppointmentsController : Controller
     [HttpGet]
     public IActionResult Create()
     {
-        ViewBag.Doctors = new SelectList(_context.Doctors, "Id", "Name");
-        ViewBag.Patients = new SelectList(_context.Users.Where(u => u.UserType == "Patient"), "Id", "FullName");
-        ViewBag.Clinics = new SelectList(_context.Clinics, "Id", "Name");
+        ViewBag.Doctors = new SelectList(_context.Doctors.Where(d => d.Name != null).ToList(), "Id", "Name");
+        ViewBag.Patients = new SelectList(_context.Users.Where(u => u.UserType == "Patient").ToList(), "Id", "FullName");
+        ViewBag.Clinics = new SelectList(_context.Clinics.Where(c => c.Name != null).ToList(), "Id", "Name");
         return View();
     }
 
     [HttpPost]
     public async Task<IActionResult> Create(Appointment appointment)
     {
-        if (appointment.DoctorId == 0 || string.IsNullOrEmpty(appointment.PatientId) || appointment.ClinicId == 0)
+        if (appointment.DoctorId == 0 || appointment.PatientId == 0 || appointment.ClinicId == 0)
         {
             ModelState.AddModelError("", "Please select a doctor, patient, and clinic.");
         }
 
         if (!ModelState.IsValid)
         {
-            ViewBag.Doctors = new SelectList(_context.Doctors, "Id", "Name");
-            ViewBag.Patients = new SelectList(_context.Users.Where(u => u.UserType == "Patient"), "Id", "FullName");
-            ViewBag.Clinics = new SelectList(_context.Clinics, "Id", "Name");
+            ViewBag.Doctors = new SelectList(_context.Doctors.Where(d => d.Name != null).ToList(), "Id", "Name");
+            ViewBag.Patients = new SelectList(_context.Users.Where(u => u.UserType == "Patient").ToList(), "Id", "FullName");
+            ViewBag.Clinics = new SelectList(_context.Clinics.Where(c => c.Name != null).ToList(), "Id", "Name");
             return View(appointment);
         }
 

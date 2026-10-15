@@ -7,13 +7,13 @@ namespace ClinicManagementSystem.Models
     {
         public int Id { get; set; }
 
-        public string ApplicationUserId { get; set; }
+        public string? ApplicationUserId { get; set; }
         [ForeignKey(nameof(ApplicationUserId))]
-        public ApplicationUser ApplicationUser { get; set; }
+        public ApplicationUser? ApplicationUser { get; set; }
 
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
-        public string Phone { get; set; }
+        public string? Phone { get; set; }
         public int Age { get; set; }
         public Gender Gender { get; set; } // male = 0 , female = 1
 

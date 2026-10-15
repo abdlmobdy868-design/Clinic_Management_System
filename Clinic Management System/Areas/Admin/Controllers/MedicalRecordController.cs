@@ -54,53 +54,58 @@ namespace Clinic_Management_System.Areas.Admin.Controllers
 
         
         [HttpGet]
-        public async Task<IActionResult> Create(int? appointmentId)
+        public async Task<IActionResult> Create()
         {
-            ViewBag.Patients = new SelectList(await _context.Patients.ToListAsync(), "Id", "Name");
-            ViewBag.Doctors = new SelectList(await _context.Doctors.ToListAsync(), "Id", "Name");
+            ViewBag.Patients = new SelectList(
+                await _context.Users.Where(u => u.UserType == "Patient").Select(p => new { p.Id, FullName = p.FullName ?? "no name" }).ToListAsync(),
+                "Id", "FullName");
+
+            ViewBag.Doctors = new SelectList(
+                await _context.Doctors.Select(d => new { d.Id, Name = d.Name ?? "no name" }).ToListAsync(),
+                "Id", "Name");
+
             ViewBag.Appointments = new SelectList(
-                await _context.Appointments
-                    .Include(a => a.Patient)
-                    .Select(a => new { Id = a.Id, DisplayName = $"Appt #{a.Id} - {a.Patient.Name}" })
-                    .ToListAsync(),
-                "Id",
-                "DisplayName",
-                appointmentId
-            );
+                await _context.Appointments.Include(a => a.Patient)
+                   .Where(a => a.Patient != null)
+                   .Select(a => new { Id = a.Id, DisplayName = "Appt #" + a.Id + " - " + (a.Patient.Name ?? "Unknown") })
+                   .ToListAsync(),
+                "Id", "DisplayName");
 
             return View();
+        
         }
 
-        
         [HttpPost]
         public async Task<IActionResult> Create(MedicalRecord record)
         {
             if (ModelState.IsValid)
             {
                 record.CreatedAt = DateTime.UtcNow;
-
                 _context.MedicalRecords.Add(record);
                 await _context.SaveChangesAsync();
-
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewBag.Patients = new SelectList(await _context.Patients.ToListAsync(), "Id", "Name", record.PatientId);
-            ViewBag.Doctors = new SelectList(await _context.Doctors.ToListAsync(), "Id", "Name", record.DoctorId);
+            ViewBag.Patients = new SelectList(
+     await _context.Users.Where(u => u.UserType == "Patient").Select(p => new { p.Id, FullName = p.FullName ?? "بدون اسم" }).ToListAsync(),
+     "Id", "FullName", record.PatientId);
+
+            ViewBag.Doctors = new SelectList(
+                await _context.Doctors.Select(d => new { d.Id, Name = d.Name ?? "بدون اسم" }).ToListAsync(),
+                "Id", "Name", record.DoctorId);
+
             ViewBag.Appointments = new SelectList(
-                await _context.Appointments
-                    .Include(a => a.Patient)
-                    .Select(a => new { Id = a.Id, DisplayName = $"Appt #{a.Id} - {a.Patient.Name}" })
-                    .ToListAsync(),
-                "Id",
-                "DisplayName",
-                record.AppointmentId
+                await _context.Appointments.Include(a => a.Patient)
+                   .Where(a => a.Patient != null)
+                   .Select(a => new { Id = a.Id, DisplayName = "Appt #" + a.Id + " - " + (a.Patient.Name ?? "Unknown") })
+                   .ToListAsync(),
+                "Id", "DisplayName", record.AppointmentId
             );
 
             return View(record);
         }
 
-        
+
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {

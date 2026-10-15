@@ -36,7 +36,7 @@ namespace ClinicManagementSystem.Areas.Admin.Controllers
                 FullName = user?.FullName ?? User.Identity?.Name ?? "User",
                 UserType = user?.UserType ?? string.Empty,
 
-                TotalPatients = await _context.Patients.CountAsync(),
+                TotalPatients = await _context.Users.CountAsync(u => u.UserType == "Patient"),
                 TotalDoctors = await _context.Doctors.CountAsync(),
                 TotalClinics = await _context.Clinics.CountAsync(),
                 TotalDepartments = await _context.Departments.CountAsync(),

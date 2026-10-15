@@ -10,7 +10,7 @@ namespace ClinicManagementSystem.Models
         
         public int Id { get; set; }
         [Required]
-        public string PatientId { get; set; }
+        public int PatientId { get; set; }
         [ValidateNever]
         public Patient? Patient { get; set; }
         [Required]

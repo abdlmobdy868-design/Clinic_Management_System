@@ -17,9 +17,9 @@ namespace ClinicManagementSystem.Models
         [ValidateNever]
         public Department? Department { get; set; }
 
-        public string Name { get; set; } = "";
+        public string? Name { get; set; } = "";
 
-        public string Specialization { get; set; }="";
+        public string? Specialization { get; set; }="";
 
         public int ExperienceYears { get; set; }
 

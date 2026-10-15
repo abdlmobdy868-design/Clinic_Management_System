@@ -38,6 +38,7 @@ namespace ClinicManagementSystem.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(Department dept)
         {
+            ModelState.Remove("Clinic");
             if (string.IsNullOrWhiteSpace(dept.Name)) ModelState.AddModelError("Name", "Name is required");
             if (_context.Departments.Any(d => d.Name == dept.Name)) ModelState.AddModelError("Name", "A department with this name already exists.");
 

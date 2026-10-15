@@ -58,7 +58,7 @@ namespace ClinicManagementSystem.Controllers
             ModelState.AddModelError("", "Invalid email or password");
             return View(vm);
         }
-
+        [HttpGet]
         [HttpPost]
         public async Task<IActionResult> Logout()
         {

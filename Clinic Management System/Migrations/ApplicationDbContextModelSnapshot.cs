@@ -120,11 +120,7 @@ namespace Clinic_Management_System.Migrations
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
 
-                    b.Property<string>("PatientId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("PatientId1")
+                    b.Property<int>("PatientId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("StartTime")
@@ -142,7 +138,7 @@ namespace Clinic_Management_System.Migrations
 
                     b.HasIndex("DoctorId");
 
-                    b.HasIndex("PatientId1");
+                    b.HasIndex("PatientId");
 
                     b.ToTable("Appointments");
                 });
@@ -156,18 +152,15 @@ namespace Clinic_Management_System.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("DepartmentId")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Phone")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -216,11 +209,9 @@ namespace Clinic_Management_System.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Specialization")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -319,7 +310,6 @@ namespace Clinic_Management_System.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("ApplicationUserId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("BloodType")
@@ -329,11 +319,9 @@ namespace Clinic_Management_System.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Phone")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -644,8 +632,9 @@ namespace Clinic_Management_System.Migrations
 
                     b.HasOne("ClinicManagementSystem.Models.Patient", "Patient")
                         .WithMany()
-                        .HasForeignKey("PatientId1")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Clinic");
 
@@ -714,8 +703,7 @@ namespace Clinic_Management_System.Migrations
                     b.HasOne("ClinicManagementSystem.Models.ApplicationUser", "ApplicationUser")
                         .WithMany()
                         .HasForeignKey("ApplicationUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ApplicationUser");
                 });
@@ -852,8 +840,7 @@ namespace Clinic_Management_System.Migrations
 
             modelBuilder.Entity("ClinicManagementSystem.Models.Clinic", b =>
                 {
-                    b.Navigation("Department")
-                        .IsRequired();
+                    b.Navigation("Department");
                 });
 #pragma warning restore 612, 618
         }
