@@ -4,8 +4,9 @@
     <form asp-action="Edit" method="post">
         <input type="hidden" asp-for="Id" />
         <input asp-for="Name" class="form-control mb-2" placeholder="Name" />
-        <input asp-for="Specialization" class="form-control mb-2" placeholder="Specialization" />
-       
+        <select asp-for="Specialization" class="form-control" asp-items="@(new SelectList(ViewBag.Specializations))">
+            <option value="">-- Select Specialization --</option>
+        </select>
         <button class="btn btn-success">Save Update</button>
         <a asp-action="Index" class="btn btn-secondary">Back</a>
     </form>

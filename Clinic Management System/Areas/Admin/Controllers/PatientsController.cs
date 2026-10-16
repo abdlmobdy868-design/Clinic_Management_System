@@ -27,6 +27,7 @@ namespace ClinicManagementSystem.Areas.Admin.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(string fullName, string email, string phone, string password, int? DepartmentId)
         {
             var user = new ApplicationUser
@@ -50,17 +51,19 @@ namespace ClinicManagementSystem.Areas.Admin.Controllers
 
             foreach (var e in result.Errors) ModelState.AddModelError("", e.Description);
 
-            ViewBag.Departments = new SelectList(_context.Departments, "Id", "Name");
+            ViewBag.Departments = new SelectList(_context.Departments, "Id", "Name", DepartmentId);
             return View();
         }
 
         [HttpGet]
+        
         public async Task<IActionResult> Edit(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
             return View(user);
         }
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(string id, string fullName, string email, string phone)
         {
             var user = await _userManager.FindByIdAsync(id);
@@ -71,11 +74,43 @@ namespace ClinicManagementSystem.Areas.Admin.Controllers
             await _userManager.UpdateAsync(user);
             return RedirectToAction(nameof(Index));
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(string id)
         {
-            var user = await _userManager.FindByIdAsync(id);
-            if (user != null) await _userManager.DeleteAsync(user);
+            // id اللي جاي ده ممكن يكون PatientId او ApplicationUserId
+            // هندور بالاتنين
+            var patient = await _context.Patients
+                .FirstOrDefaultAsync(p => p.ApplicationUserId == id || p.Id.ToString() == id);
+
+            if (patient == null) return RedirectToAction(nameof(Index));
+
+            // 1. امسح المواعيد والملفات
+            _context.Appointments.RemoveRange(_context.Appointments.Where(a => a.PatientId == patient.Id));
+            _context.MedicalRecords.RemoveRange(_context.MedicalRecords.Where(r => r.PatientId == patient.Id));
+
+            if (!string.IsNullOrEmpty(patient.ApplicationUserId))
+            {
+                var userRoles = await _context.UserRoles
+                    .Where(r => r.UserId == patient.ApplicationUserId)
+                    .ToListAsync();
+                _context.UserRoles.RemoveRange(userRoles);
+
+                await _context.SaveChangesAsync();
+
+                // 3. امسح اليوزر من Identity
+                var user = await _userManager.FindByIdAsync(patient.ApplicationUserId);
+                if (user != null)
+                {
+                    await _userManager.DeleteAsync(user);
+                }
+            }
+
+            _context.Patients.Remove(patient);
+            await _context.SaveChangesAsync();
+
             return RedirectToAction(nameof(Index));
         }
+    
     }
 }
