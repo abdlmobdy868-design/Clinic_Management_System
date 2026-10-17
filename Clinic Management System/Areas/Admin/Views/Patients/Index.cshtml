@@ -19,7 +19,9 @@
                     <td>@d.PhoneNumber</td>
                     <td>
                         <a asp-action="Edit" asp-route-id="@d.Id" class="btn btn-sm btn-warning">Update</a>
-                        <a asp-action="Delete" asp-route-id="@d.Id" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this patient?')">Delete</a>
+                        <form asp-action="Delete" asp-route-id="@d.Id" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete?')">
+                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                        </form>
                     </td>
                 </tr>
             }

@@ -5,98 +5,144 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+<<<<<<< HEAD
 [Area("Admin")]
 [Authorize(Roles = $"{CD.ADMIN_ROLE} ,{CD.SUPER_ADMIN_ROLE}")]
 public class AppointmentsController : Controller
+=======
+
+namespace ClinicManagementSystem.Areas.Admin.Controllers
+>>>>>>> 4c727c585529863d3fae149c2629fd1cc098b127
 {
-    private readonly ApplicationDbContext _context;
-    public AppointmentsController(ApplicationDbContext context) => _context = context;
-
-    public async Task<IActionResult> Index() => View(await _context.Appointments.Include(a => a.Doctor).Include(a => a.Patient).ToListAsync());
-    [HttpGet]
-    public IActionResult Create()
+    [Area("Admin")]
+    public class AppointmentsController : Controller
     {
-        ViewBag.Doctors = new SelectList(_context.Doctors.Where(d => d.Name != null).ToList(), "Id", "Name");
-        ViewBag.Patients = new SelectList(_context.Users.Where(u => u.UserType == "Patient").ToList(), "Id", "FullName");
-        ViewBag.Clinics = new SelectList(_context.Clinics.Where(c => c.Name != null).ToList(), "Id", "Name");
-        return View();
-    }
+        private readonly ApplicationDbContext _context;
+        public AppointmentsController(ApplicationDbContext context) => _context = context;
 
-    [HttpPost]
-    public async Task<IActionResult> Create(Appointment appointment)
-    {
-        if (appointment.DoctorId == 0 || appointment.PatientId == 0 || appointment.ClinicId == 0)
+        public async Task<IActionResult> Index() => View(await _context.Appointments.Include(a => a.Doctor).Include(a => a.Patient).ToListAsync());
+
+        [HttpGet]
+        public IActionResult Create()
         {
-            ModelState.AddModelError("", "Please select a doctor, patient, and clinic.");
+            PopulateSelects();
+            return View();
         }
 
-        if (!ModelState.IsValid)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(Appointment appointment)
         {
-            ViewBag.Doctors = new SelectList(_context.Doctors.Where(d => d.Name != null).ToList(), "Id", "Name");
-            ViewBag.Patients = new SelectList(_context.Users.Where(u => u.UserType == "Patient").ToList(), "Id", "FullName");
-            ViewBag.Clinics = new SelectList(_context.Clinics.Where(c => c.Name != null).ToList(), "Id", "Name");
-            return View(appointment);
+            if (appointment.DoctorId == 0 || appointment.PatientId == 0 || appointment.ClinicId == 0)
+            {
+                ModelState.AddModelError("", "Please select a doctor, patient, and clinic.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                PopulateSelects();
+                return View(appointment);
+            }
+
+            try
+            {
+                _context.Appointments.Add(appointment);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Error saving: " + ex.InnerException?.Message ?? ex.Message);
+                PopulateSelects();
+                return View(appointment);
+            }
         }
 
-        try
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangeStatus(int id, string status)
         {
-            _context.Appointments.Add(appointment);
+            var app = await _context.Appointments.FindAsync(id);
+            if (app != null)
+            {
+                if (Enum.TryParse<AppointmentStatus>(status, true, out var newStatus))
+                {
+                    app.Status = newStatus;
+                    await _context.SaveChangesAsync();
+                }
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
+
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var app = await _context.Appointments.FindAsync(id);
+            if (app == null) return NotFound();
+
+            ViewBag.Doctors = new SelectList(_context.Doctors, "Id", "Name", app.DoctorId);
+            ViewBag.Patients = new SelectList(_context.Patients
+                .Include(p => p.ApplicationUser)
+                .ToList()
+                .Select(p => new {
+                    Id = p.Id,
+                    Name = p.ApplicationUser?.FullName ?? p.ApplicationUser?.UserName ?? p.Name ?? $"Patient {p.Id}"
+                }), "Id", "Name");
+            ViewBag.Clinics = new SelectList(_context.Clinics, "Id", "Name", app.ClinicId);
+            return View(app);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(Appointment app)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Doctors = new SelectList(_context.Doctors, "Id", "Name", app.DoctorId);
+                ViewBag.Patients = new SelectList(_context.Patients
+                    .Include(p => p.ApplicationUser)
+                    .ToList()
+                    .Select(p => new {
+                        Id = p.Id,
+                        Name = p.ApplicationUser?.FullName ?? p.ApplicationUser?.UserName ?? p.Name ?? $"Patient {p.Id}"
+                    }), "Id", "Name");
+                ViewBag.Clinics = new SelectList(_context.Clinics, "Id", "Name", app.ClinicId);
+                return View(app);
+            }
+
+            _context.Appointments.Update(app);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-        catch (Exception ex)
+
+        // POST delete (must be POST + antiforgery)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
         {
-            ModelState.AddModelError("", "Error saving: " + ex.InnerException?.Message);
-            ViewBag.Doctors = new SelectList(_context.Doctors, "Id", "Name");
-            ViewBag.Patients = new SelectList(_context.Users.Where(u => u.UserType == "Patient"), "Id", "FullName");
-            ViewBag.Clinics = new SelectList(_context.Clinics, "Id", "Name");
-            return View(appointment);
+            var app = await _context.Appointments.FindAsync(id);
+            if (app != null)
+            {
+                _context.Appointments.Remove(app);
+                await _context.SaveChangesAsync();
+            }
+            return RedirectToAction(nameof(Index));
         }
-    }
 
-    [HttpPost]
-public async Task<IActionResult> ChangeStatus(int id, string status)
-{
-    var app = await _context.Appointments.FindAsync(id);
-    if (app != null)
-    {
-        if (Enum.TryParse<AppointmentStatus>(status, true, out var newStatus))
+        private void PopulateSelects()
         {
-            app.Status = newStatus;
-            await _context.SaveChangesAsync();
+            ViewBag.Doctors = new SelectList(_context.Doctors.Where(d => d.Name != null).ToList(), "Id", "Name");
+            var patients = _context.Patients.Include(p => p.ApplicationUser).ToList()
+      .Select(p => new {
+          Id = p.Id,
+          Name = !string.IsNullOrEmpty(p.Name) ? p.Name : (p.ApplicationUser?.UserName ?? $"Patient {p.Id}")
+      }).ToList();
+
+            ViewBag.Patients = new SelectList(patients, "Id", "Name");
+            ViewBag.PatientId = ViewBag.Patients; // ده المهم اللي الـ View بيقرأه
+            ViewBag.Clinics = new SelectList(_context.Clinics.Where(c => c.Name != null).ToList(), "Id", "Name");
         }
-    }
-    return RedirectToAction(nameof(Index));
-}
-
-
-
-
-    [HttpGet]
-    public async Task<IActionResult> Edit(int id)
-    {
-        var app = await _context.Appointments.FindAsync(id);
-        ViewBag.Doctors = new SelectList(_context.Doctors, "Id", "Name", app.DoctorId);
-        ViewBag.Patients = new SelectList(_context.Patients, "Id", "Name", app.PatientId);
-        return View(app);
-    }
-    [HttpPost]
-    public async Task<IActionResult> Edit(Appointment app)
-    {
-        _context.Appointments.Update(app);
-        await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
-    }
-
-    // DELETE
-    public async Task<IActionResult> Delete(int id)
-    {
-        var app = await _context.Appointments.FindAsync(id);
-        if (app != null)
-        {
-            _context.Appointments.Remove(app);
-            await _context.SaveChangesAsync();
-        }
-        return RedirectToAction(nameof(Index));
     }
 }

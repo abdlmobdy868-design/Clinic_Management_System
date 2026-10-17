@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 ﻿using ClinicManagementSystem.Models;
 using ClinicManagementSystem.Utilities;
+=======
+﻿using ClinicManagementSystem.Data;
+using ClinicManagementSystem.Models;
+>>>>>>> 4c727c585529863d3fae149c2629fd1cc098b127
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -13,10 +18,12 @@ namespace ClinicManagementSystem.Areas.Admin.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        public UsersController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+        private readonly ApplicationDbContext _context;
+        public UsersController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext context)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _context = context;
         }
 
         public async Task<IActionResult> Index()
@@ -92,12 +99,49 @@ namespace ClinicManagementSystem.Areas.Admin.Controllers
             await _userManager.UpdateAsync(user);
             return RedirectToAction(nameof(Index));
         }
-
         public async Task<IActionResult> Delete(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
-            if (user != null) await _userManager.DeleteAsync(user);
+            if (user == null) return RedirectToAction(nameof(Index));
+
+            // متسمحش تمسح نفسك
+            if (id == _userManager.GetUserId(User))
+            {
+                TempData["Error"] = "Can't delete yourself!";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // 1- اهم سطر هيحل الايرور اللي في الصورة: امسح الرولات الاول
+            var userRoles = await _context.UserRoles.Where(r => r.UserId == id).ToListAsync();
+            _context.UserRoles.RemoveRange(userRoles);
+
+            // 2- امسح اي حاجة مربوطة باليوزر ده
+            var patient = await _context.Patients.FirstOrDefaultAsync(p => p.ApplicationUserId == id);
+            if (patient != null)
+            {
+                _context.Appointments.RemoveRange(_context.Appointments.Where(a => a.PatientId == patient.Id));
+                _context.MedicalRecords.RemoveRange(_context.MedicalRecords.Where(r => r.PatientId == patient.Id));
+                _context.Patients.Remove(patient);
+            }
+
+            var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.ApplicationUserId == id);
+            if (doctor != null)
+            {
+                _context.Appointments.RemoveRange(_context.Appointments.Where(a => a.DoctorId == doctor.Id));
+                _context.Doctors.Remove(doctor);
+            }
+
+            await _context.SaveChangesAsync();
+
+            // 3- دلوقتي امسح اليوزر نفسه وهيتمسح بدون اي ايرور
+            await _userManager.DeleteAsync(user);
+
+
+
             return RedirectToAction(nameof(Index));
         }
+
+         
+        
     }
 }
