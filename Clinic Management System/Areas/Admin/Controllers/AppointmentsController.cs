@@ -1,10 +1,12 @@
 ﻿using ClinicManagementSystem.Data;
 using ClinicManagementSystem.Models;
 using ClinicManagementSystem.Utilities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 [Area("Admin")]
+[Authorize(Roles = $"{CD.ADMIN_ROLE} ,{CD.SUPER_ADMIN_ROLE}")]
 public class AppointmentsController : Controller
 {
     private readonly ApplicationDbContext _context;

@@ -1,5 +1,6 @@
 ﻿using ClinicManagementSystem.Data;
 using ClinicManagementSystem.Models;
+using ClinicManagementSystem.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 namespace Clinic_Management_System.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize]
+    [Authorize(Roles = $"{CD.ADMIN_ROLE} ,{CD.SUPER_ADMIN_ROLE}")]
     public class MedicalRecordController : Controller
     {
         private readonly ApplicationDbContext _context;

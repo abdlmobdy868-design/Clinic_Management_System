@@ -73,8 +73,9 @@
             <h3 class="fw-bold">Sign In</h3>
             <p class="text-muted mb-4">Login to your dashboard</p>
             <form asp-action="Login" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <label>Email</label>
-                <input asp-for="Email" class="form-control" placeholder="doctor@clinic.com" />
+                <input asp-for="UserNameOrEmail" class="form-control" placeholder="doctor@clinic.com" />
                 <label>Password</label>
                 <input asp-for="Password" type="password" class="form-control" placeholder="••••••••" />
                 <div class="form-check mb-3"><input asp-for="RememberMe" class="form-check-input" /><label class="form-check-label">Remember me</label></div>

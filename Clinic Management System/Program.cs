@@ -1,9 +1,12 @@
 ///using static Clinic_Management_System.Repositories.Interface_IGenericRepository;
+using Clinic_Management_System.Utilities;
+using Clinic_Management_System.Utilities.DBSeeder;
 using ClinicManagementSystem.Data;
 using ClinicManagementSystem.Models;
 using ClinicManagementSystem.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,18 +14,34 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+var connectionString =
+                builder.Configuration.GetConnectionString("DefaultConnection")
+                    ?? throw new InvalidOperationException("Connection string"
+                    + "'DefaultConnection' not found.");
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
- options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = false)
+    options.UseSqlServer(connectionString));
 
-    //builder.Services.AddScoped(typeof(ClinicManagementSystem.Repositories.IGenericRepository<>), typeof(ClinicManagementSystem.Repositories.GenericRepository<>));
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped<IDBInitialization, DBInitialization>();
+builder.Services.AddTransient<IEmailSender, EmailSender>();
 
-
-
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+{
+    options.User.RequireUniqueEmail = true;
+    options.SignIn.RequireConfirmedAccount = true;
+}
+)
+ .AddEntityFrameworkStores<ApplicationDbContext>()
+ .AddDefaultTokenProviders();
 var app = builder.Build();
-
 using (var scope = app.Services.CreateScope())
+{
+    var dbInitializer = scope.ServiceProvider.GetRequiredService<IDBInitialization>();
+    await dbInitializer.InitializationAsync();
+}
+
+/*using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     string[] roles = new[] { "Admin", "Doctor", "Patient", "Receptionist" };
@@ -35,6 +54,7 @@ using (var scope = app.Services.CreateScope())
         }
     }
 }
+*/
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

@@ -46,17 +46,38 @@ namespace ClinicManagementSystem.Controllers
         [HttpGet] public IActionResult Login() => View();
 
         [HttpPost]
-        public async Task<IActionResult> Login(LoginVM vm)
+        public async Task<IActionResult> Login(LoginVM loginVM)
         {
-            if (!ModelState.IsValid) return View(vm);
-            var user = await _userManager.FindByEmailAsync(vm.Email);
-            if (user != null)
+            var user = await _userManager.FindByEmailAsync(loginVM.UserNameOrEmail) ??
+                await _userManager.FindByNameAsync(loginVM.UserNameOrEmail);
+
+            if (user is null)
             {
-                var r = await _signInManager.PasswordSignInAsync(user, vm.Password, vm.RememberMe, false);
-                if (r.Succeeded) return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+                ModelState.AddModelError("", "Invalid user name or password");
+                return View(loginVM);
             }
-            ModelState.AddModelError("", "Invalid email or password");
-            return View(vm);
+
+            var result = await _signInManager.PasswordSignInAsync(user, loginVM.Password, loginVM.RememberMe, true);
+
+            if (!result.Succeeded)
+            {
+                if (result.IsLockedOut)
+                {
+                    ModelState.AddModelError("", "to many attemps please try again later");
+                }
+                else if (result.IsNotAllowed)
+                {
+                    ModelState.AddModelError("", "please confirme your email");
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Invalid user name or password");
+                }
+                return View(loginVM);
+
+            }
+
+            return RedirectToAction("Index", "Home", new { area = "Customer" });
         }
         [HttpGet]
         [HttpPost]

@@ -1,6 +1,7 @@
 ﻿using Clinic_Management_System.ViewModel;
 using ClinicManagementSystem.Data;
 using ClinicManagementSystem.Models;
+using ClinicManagementSystem.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +15,7 @@ using System.Threading.Tasks;
 namespace Clinic_Management_System.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize]
+    [Authorize(Roles = $"{CD.ADMIN_ROLE} ,{CD.SUPER_ADMIN_ROLE}")]
     public class LabController : Controller
     {
         private readonly ApplicationDbContext _context;

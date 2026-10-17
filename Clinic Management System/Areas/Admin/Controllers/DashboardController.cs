@@ -9,8 +9,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ClinicManagementSystem.Areas.Admin.Controllers
 {
-    [Authorize]
     [Area("Admin")]
+    [Authorize(Roles = $"{CD.ADMIN_ROLE} ,{CD.SUPER_ADMIN_ROLE}")]
     public class DashboardController : Controller
     {
         private readonly ApplicationDbContext _context;
