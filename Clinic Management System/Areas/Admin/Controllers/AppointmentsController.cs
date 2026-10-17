@@ -5,17 +5,16 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-<<<<<<< HEAD
-[Area("Admin")]
-[Authorize(Roles = $"{CD.ADMIN_ROLE} ,{CD.SUPER_ADMIN_ROLE}")]
-public class AppointmentsController : Controller
-=======
+
+
+
 
 namespace ClinicManagementSystem.Areas.Admin.Controllers
->>>>>>> 4c727c585529863d3fae149c2629fd1cc098b127
+
 {
     [Area("Admin")]
-    public class AppointmentsController : Controller
+[Authorize(Roles = $"{CD.ADMIN_ROLE} ,{CD.SUPER_ADMIN_ROLE}")]
+public class AppointmentsController : Controller
     {
         private readonly ApplicationDbContext _context;
         public AppointmentsController(ApplicationDbContext context) => _context = context;

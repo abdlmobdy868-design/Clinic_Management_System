@@ -1,10 +1,10 @@
-<<<<<<< HEAD
-﻿using ClinicManagementSystem.Models;
-using ClinicManagementSystem.Utilities;
-=======
+
 ﻿using ClinicManagementSystem.Data;
 using ClinicManagementSystem.Models;
->>>>>>> 4c727c585529863d3fae149c2629fd1cc098b127
+
+﻿using ClinicManagementSystem.Utilities;
+
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
