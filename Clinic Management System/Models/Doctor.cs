@@ -12,7 +12,7 @@ namespace ClinicManagementSystem.Models
         [ValidateNever]
         public ApplicationUser? ApplicationUser { get; set; }
 
-        public int DepartmentId { get; set; }
+        public int? DepartmentId { get; set; }
         [ForeignKey(nameof(DepartmentId))]
         [ValidateNever]
         public Department? Department { get; set; }

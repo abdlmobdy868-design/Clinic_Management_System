@@ -133,11 +133,13 @@ namespace ClinicManagementSystem.Areas.Admin.Controllers
 
             // 1- Delete lab results that belong to medical records of this doctor
             var medicalRecords = await _context.MedicalRecords
-                .Where(m => m.DoctorId == doctor.Id)
-                .ToListAsync();
+        .Where(m => m.DoctorId == doctor.Id)
+        .ToListAsync();
+
+            var medicalRecordIds = medicalRecords.Select(m => m.Id).ToList();
 
             var labResultsToRemove = await _context.labResults
-                .Where(l => medicalRecords.Select(m => m.Id).Contains(l.MedicalRecordId))
+                .Where(l => l.MedicalRecordId != null && medicalRecordIds.Contains(l.MedicalRecordId.Value))
                 .ToListAsync();
 
             if (labResultsToRemove.Any())

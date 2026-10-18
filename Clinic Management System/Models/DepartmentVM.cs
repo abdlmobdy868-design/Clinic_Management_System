@@ -4,7 +4,7 @@ namespace ClinicManagementSystem.Models
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public string ClinicName { get; set; }
+        public string? ClinicName { get; set; }
         public int DoctorsCount { get; set; }
     }
 }

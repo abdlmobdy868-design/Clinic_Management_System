@@ -6,9 +6,9 @@ namespace ClinicManagementSystem.Models
     {
         public int Id { get; set; }
 
-        public int MedicalRecordId { get; set; }
+        public int? MedicalRecordId { get; set; }
         [ForeignKey(nameof(MedicalRecordId))]
-        public MedicalRecord MedicalRecord { get; set; }
+        public MedicalRecord? MedicalRecord { get; set; }
 
         public DateTime Date { get; set; } = DateTime.UtcNow;
 

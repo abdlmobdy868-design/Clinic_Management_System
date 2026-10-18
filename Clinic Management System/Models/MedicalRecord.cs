@@ -8,14 +8,14 @@ namespace ClinicManagementSystem.Models
         
         public int Id { get; set; }
 
-        public int PatientId { get; set; }
+        public int? PatientId { get; set; }
 
         [ForeignKey(nameof(PatientId))]
-        public virtual Patient Patient { get; set; } = null!;
-        public int DoctorId { get; set; }
+        public virtual Patient? Patient { get; set; } 
+        public int? DoctorId { get; set; }
 
         [ForeignKey(nameof(DoctorId))]
-        public virtual Doctor Doctor { get; set; } = null!;
+        public virtual Doctor? Doctor { get; set; } 
 
         public int? AppointmentId { get; set; }
 
