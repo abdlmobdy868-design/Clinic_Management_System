@@ -22,7 +22,7 @@ namespace ClinicManagementSystem.ViewModel
 
         [Required]
         [Display(Name = "Role / User Type")]
-        public string? UserType { get; set; } = "Doctor";
+        public string? UserType { get; set; } = "Patient";
 
         [Required, DataType(DataType.Password)]
         public string Password { get; set; }

@@ -1,0 +1,10 @@
+@model double
+@{
+    var filled = (int)Math.Round(Model, MidpointRounding.AwayFromZero);
+}
+<span class="stars" title="@Model.ToString("0.0") out of 5">
+    @for (var i = 1; i <= 5; i++)
+    {
+        <i class="@(i <= filled ? "fa-solid" : "fa-regular") fa-star"></i>
+    }
+</span>

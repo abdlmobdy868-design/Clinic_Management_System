@@ -1,0 +1,130 @@
+@model HomeVM
+@{
+    ViewData["Title"] = "Home";
+}
+
+<!-- Hero + search -->
+<section class="hero">
+    <div class="container">
+        <h1>Find the right doctor, close to you</h1>
+        <p class="lead">Browse our clinics and departments, read doctor profiles and see open appointment slots.</p>
+
+        <form method="get" asp-area="Customer" asp-controller="Doctors" asp-action="Index" class="hero-search">
+            <div class="row g-2">
+                <div class="col-lg-5">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-magnifying-glass"></i></span>
+                        <input type="text" name="q" class="form-control" placeholder="Doctor name or specialization" />
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <select name="departmentId" class="form-select">
+                        <option value="">All departments</option>
+                        @foreach (var d in Model.Departments)
+                        {
+                            <option value="@d.Id">@(d.ClinicName != null ? $"{d.Name} - {d.ClinicName}" : d.Name)</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-lg-3 d-grid">
+                    <button type="submit" class="btn btn-accent">Search doctors</button>
+                </div>
+            </div>
+        </form>
+
+        <div class="hero-stats">
+            <div><strong>@Model.Clinics.Count</strong><span>Clinics</span></div>
+            <div><strong>@Model.Departments.Count</strong><span>Departments</span></div>
+            <div><strong>@Model.TotalDoctors</strong><span>Doctors</span></div>
+        </div>
+    </div>
+</section>
+
+<!-- Clinics -->
+<section class="container py-5">
+    <div class="section-head">
+        <h2>Our clinics</h2>
+        <p>Choose a clinic to see its departments and doctors.</p>
+    </div>
+
+    @if (!Model.Clinics.Any())
+    {
+        <div class="empty-state"><i class="fas fa-hospital"></i><p>No clinics have been added yet.</p></div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var c in Model.Clinics)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card-soft h-100">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="icon-badge"><i class="fas fa-hospital"></i></div>
+                            <div>
+                                <h5 class="mb-0">@c.Name</h5>
+                                <small class="text-muted">@c.DoctorCount doctor(s) &middot; @c.Departments.Count department(s)</small>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(c.Address))
+                        {
+                            <div class="info-line"><i class="fas fa-location-dot"></i> @c.Address</div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(c.Phone))
+                        {
+                            <div class="info-line"><i class="fas fa-phone"></i> @c.Phone</div>
+                        }
+
+                        @if (c.Departments.Any())
+                        {
+                            <div class="chips">
+                                @foreach (var d in c.Departments)
+                                {
+                                    <a class="chip" asp-area="Customer" asp-controller="Doctors" asp-action="Index" asp-route-departmentId="@d.Id">@d.Name</a>
+                                }
+                            </div>
+                        }
+
+                        <a class="btn btn-primary w-100 mt-3" asp-area="Customer" asp-controller="Doctors" asp-action="Index" asp-route-clinicId="@c.Id">
+                            View doctors <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</section>
+
+<!-- Departments -->
+<section class="bg-white py-5">
+    <div class="container">
+        <div class="section-head">
+            <h2>Departments</h2>
+            <p>Find specialists by department.</p>
+        </div>
+
+        @if (!Model.Departments.Any())
+        {
+            <div class="empty-state"><i class="fas fa-stethoscope"></i><p>No departments have been added yet.</p></div>
+        }
+        else
+        {
+            <div class="row g-3">
+                @foreach (var d in Model.Departments)
+                {
+                    <div class="col-sm-6 col-lg-3">
+                        <a class="dept-card" asp-area="Customer" asp-controller="Doctors" asp-action="Index" asp-route-departmentId="@d.Id">
+                            <div class="icon-badge sm"><i class="fas fa-stethoscope"></i></div>
+                            <div>
+                                <div class="fw-semibold">@d.Name</div>
+                                <small class="text-muted">
+                                    @(d.ClinicName ?? "General") &middot; @d.DoctorCount doctor(s)
+                                </small>
+                            </div>
+                        </a>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</section>

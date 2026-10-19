@@ -1,0 +1,156 @@
+@model DoctorListVM
+@{
+    ViewData["Title"] = "Doctors";
+    var sortOptions = new SelectList(new[]
+    {
+        new { V = "rating", T = "Top rated" },
+        new { V = "experience", T = "Most experienced" },
+        new { V = "soonest", T = "Earliest available" },
+        new { V = "name", T = "Name (A-Z)" }
+    }, "V", "T", Model.Sort);
+}
+
+<section class="page-head">
+    <div class="container">
+        <h2>Our doctors</h2>
+        <p>Search by name or specialization, then narrow down by clinic or department.</p>
+    </div>
+</section>
+
+<div class="container py-4">
+
+    <!-- Filters -->
+    <form method="get" asp-area="Customer" asp-controller="Doctors" asp-action="Index" class="filter-card mb-4">
+        <div class="row g-3 align-items-end">
+            <div class="col-lg-4">
+                <label class="form-label">Search</label>
+                <input type="text" name="q" value="@Model.Q" class="form-control" placeholder="Doctor name or specialization" />
+            </div>
+            <div class="col-md-6 col-lg-2">
+                <label class="form-label">Clinic</label>
+                <select name="clinicId" class="form-select" asp-items="Model.ClinicOptions">
+                    <option value="">All clinics</option>
+                </select>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <label class="form-label">Department</label>
+                <select name="departmentId" class="form-select" asp-items="Model.DepartmentOptions">
+                    <option value="">All departments</option>
+                </select>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <label class="form-label">Specialization</label>
+                <select name="specialization" class="form-select" asp-items="Model.SpecializationOptions">
+                    <option value="">All specializations</option>
+                </select>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <label class="form-label">Sort by</label>
+                <select name="sort" class="form-select" asp-items="sortOptions"></select>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" name="availableOnly" id="availableOnly" value="true" checked="@Model.AvailableOnly" />
+                    <label class="form-check-label" for="availableOnly">Only doctors with open slots</label>
+                </div>
+            </div>
+            <div class="col-lg-6 d-flex gap-2 justify-content-lg-end">
+                <button type="submit" class="btn btn-primary px-4"><i class="fas fa-filter me-1"></i> Apply</button>
+                @if (Model.HasFilters)
+                {
+                    <a class="btn btn-outline-secondary" asp-area="Customer" asp-controller="Doctors" asp-action="Index">Reset</a>
+                }
+            </div>
+        </div>
+    </form>
+
+    <!-- Results -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">@Model.TotalResults doctor(s) found</h5>
+        @if (Model.TotalPages > 1)
+        {
+            <small class="text-muted">Page @Model.Page of @Model.TotalPages</small>
+        }
+    </div>
+
+    @if (!Model.Doctors.Any())
+    {
+        <div class="empty-state">
+            <i class="fas fa-user-doctor"></i>
+            <p>No doctors match your search. Try changing or resetting the filters.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var d in Model.Doctors)
+            {
+                <div class="col-md-6 col-xl-4">
+                    <div class="doctor-card h-100">
+                        <div class="d-flex gap-3 align-items-center mb-3">
+                            <div class="avatar-lg">@d.Initial</div>
+                            <div class="min-w-0">
+                                <h5 class="mb-0 text-truncate">@d.Name</h5>
+                                <div class="text-muted">@(string.IsNullOrWhiteSpace(d.Specialization) ? "General practice" : d.Specialization)</div>
+                            </div>
+                        </div>
+
+                        <div class="info-line"><i class="fas fa-stethoscope"></i> @(d.DepartmentName ?? "No department")</div>
+                        <div class="info-line"><i class="fas fa-hospital"></i> @(d.ClinicName ?? "No clinic assigned")</div>
+                        <div class="info-line"><i class="fas fa-briefcase-medical"></i> @d.ExperienceYears year(s) of experience</div>
+
+                        <div class="d-flex align-items-center gap-2 my-3">
+                            <partial name="_Stars" model="d.AverageRating" />
+                            @if (d.ReviewCount > 0)
+                            {
+                                <small class="text-muted">@d.AverageRating.ToString("0.0") (@d.ReviewCount)</small>
+                            }
+                            else
+                            {
+                                <small class="text-muted">No reviews yet</small>
+                            }
+                        </div>
+
+                        @if (d.NextSlot.HasValue)
+                        {
+                            <div class="slot-pill ok">
+                                <i class="fas fa-calendar-check"></i>
+                                Next: @d.NextSlot.Value.ToString("ddd dd MMM, hh:mm tt")
+                                @if (d.FromPrice.HasValue && d.FromPrice.Value > 0)
+                                {
+                                    <span class="ms-auto">Fee @d.FromPrice.Value.ToString("N0")</span>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="slot-pill none"><i class="fas fa-calendar-xmark"></i> No open slots right now</div>
+                        }
+
+                        <a class="btn btn-primary w-100 mt-3" asp-area="Customer" asp-controller="Doctors" asp-action="Details" asp-route-id="@d.Id">
+                            View profile
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Paging -->
+        @if (Model.TotalPages > 1)
+        {
+            <nav class="mt-4" aria-label="Doctors pages">
+                <ul class="pagination justify-content-center flex-wrap">
+                    @for (var p = 1; p <= Model.TotalPages; p++)
+                    {
+                        <li class="page-item @(p == Model.Page ? "active" : "")">
+                            <a class="page-link" asp-area="Customer" asp-controller="Doctors" asp-action="Index"
+                               asp-route-page="@p" asp-route-q="@Model.Q" asp-route-clinicId="@Model.ClinicId"
+                               asp-route-departmentId="@Model.DepartmentId" asp-route-specialization="@Model.Specialization"
+                               asp-route-sort="@Model.Sort" asp-route-availableOnly="@Model.AvailableOnly">@p</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    }
+</div>

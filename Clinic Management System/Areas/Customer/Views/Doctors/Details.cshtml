@@ -1,0 +1,172 @@
+@model DoctorDetailsVM
+@{
+    ViewData["Title"] = Model.Name;
+    var signedIn = User.Identity?.IsAuthenticated == true;
+}
+
+<section class="page-head">
+    <div class="container">
+        <a class="back-link" asp-area="Customer" asp-controller="Doctors" asp-action="Index"><i class="fas fa-arrow-left"></i> Back to doctors</a>
+    </div>
+</section>
+
+<div class="container py-4">
+    <div class="row g-4">
+
+        <!-- Left column: info + slots + reviews -->
+        <div class="col-lg-8">
+
+            <!-- Profile -->
+            <div class="card-soft mb-4">
+                <div class="d-flex flex-wrap gap-4 align-items-center">
+                    <div class="avatar-xl">@Model.Initial</div>
+                    <div class="flex-grow-1">
+                        <h2 class="mb-1">@Model.Name</h2>
+                        <div class="text-muted mb-2">@(string.IsNullOrWhiteSpace(Model.Specialization) ? "General practice" : Model.Specialization)</div>
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <partial name="_Stars" model="Model.AverageRating" />
+                            @if (Model.ReviewCount > 0)
+                            {
+                                <span class="fw-semibold">@Model.AverageRating.ToString("0.0")</span>
+                                <small class="text-muted">(@Model.ReviewCount review(s))</small>
+                            }
+                            else
+                            {
+                                <small class="text-muted">No reviews yet</small>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <hr />
+
+                <div class="row g-3">
+                    <div class="col-sm-4">
+                        <div class="fact"><i class="fas fa-briefcase-medical"></i><div><small>Experience</small><strong>@Model.ExperienceYears year(s)</strong></div></div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="fact"><i class="fas fa-stethoscope"></i><div><small>Department</small><strong>@(Model.DepartmentName ?? "-")</strong></div></div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="fact"><i class="fas fa-calendar-days"></i><div><small>Open slots (14 days)</small><strong>@Model.TotalOpenSlots</strong></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slots -->
+            <div class="card-soft mb-4">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                    <h4 class="mb-0"><i class="fas fa-clock me-2 text-primary"></i>Available slots</h4>
+                    @if (!signedIn && Model.SlotDays.Any())
+                    {
+                        <a class="btn btn-primary btn-sm" asp-area="" asp-controller="Account" asp-action="Login">Sign in to book</a>
+                    }
+                </div>
+
+                @if (!Model.SlotDays.Any())
+                {
+                    <div class="empty-state sm"><i class="fas fa-calendar-xmark"></i><p>No open slots in the next 14 days. Please check again later.</p></div>
+                }
+                else
+                {
+                    foreach (var day in Model.SlotDays)
+                    {
+                        <div class="slot-day">
+                            <div class="slot-day-title">@day.Date.ToString("dddd, dd MMM yyyy")</div>
+                            <div class="slot-grid">
+                                @foreach (var s in day.Slots)
+                                {
+                                    <div class="slot-chip" title="@s.Start.ToString("hh:mm tt") - @s.End.ToString("hh:mm tt")">
+                                        <strong>@s.Start.ToString("hh:mm tt")</strong>
+                                        @if (s.Price > 0)
+                                        {
+                                            <small>Fee @s.Price.ToString("N0")</small>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+
+            <!-- Reviews -->
+            <div class="card-soft">
+                <h4 class="mb-3"><i class="fas fa-star me-2 text-warning"></i>Patient reviews</h4>
+
+                @if (Model.ReviewCount == 0)
+                {
+                    <div class="empty-state sm"><i class="fas fa-comment-dots"></i><p>This doctor has no reviews yet.</p></div>
+                }
+                else
+                {
+                    <div class="row g-4 mb-3">
+                        <div class="col-sm-4 text-center">
+                            <div class="big-rating">@Model.AverageRating.ToString("0.0")</div>
+                            <partial name="_Stars" model="Model.AverageRating" />
+                            <div class="text-muted small mt-1">@Model.ReviewCount review(s)</div>
+                        </div>
+                        <div class="col-sm-8">
+                            @foreach (var kv in Model.RatingBreakdown)
+                            {
+                                var pct = Model.ReviewCount == 0 ? 0 : kv.Value * 100 / Model.ReviewCount;
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <small class="text-nowrap" style="width:42px">@kv.Key <i class="fa-solid fa-star text-warning"></i></small>
+                                    <div class="progress flex-grow-1" style="height:8px">
+                                        <div class="progress-bar" role="progressbar" style="width:@(pct)%"></div>
+                                    </div>
+                                    <small class="text-muted" style="width:28px">@kv.Value</small>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    @foreach (var r in Model.Reviews)
+                    {
+                        <div class="review">
+                            <div class="d-flex justify-content-between flex-wrap gap-1">
+                                <div class="fw-semibold">@r.ReviewerName</div>
+                                <small class="text-muted">@r.Date.ToString("dd MMM yyyy")</small>
+                            </div>
+                            <partial name="_Stars" model="(double)r.Rating" />
+                            @if (!string.IsNullOrWhiteSpace(r.Comment))
+                            {
+                                <p class="mb-0 mt-1">@r.Comment</p>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- Right column: clinic -->
+        <div class="col-lg-4">
+            <div class="card-soft sticky-side">
+                <h5 class="mb-3"><i class="fas fa-hospital me-2 text-primary"></i>Clinic</h5>
+                @if (Model.ClinicName != null)
+                {
+                    <div class="fw-semibold mb-2">@Model.ClinicName</div>
+                    @if (!string.IsNullOrWhiteSpace(Model.ClinicAddress))
+                    {
+                        <div class="info-line"><i class="fas fa-location-dot"></i> @Model.ClinicAddress</div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.ClinicPhone))
+                    {
+                        <div class="info-line"><i class="fas fa-phone"></i> @Model.ClinicPhone</div>
+                    }
+                    @if (Model.DepartmentName != null)
+                    {
+                        <div class="info-line"><i class="fas fa-stethoscope"></i> @Model.DepartmentName</div>
+                    }
+                    <a class="btn btn-outline-primary w-100 mt-3" asp-area="Customer" asp-controller="Doctors" asp-action="Index" asp-route-clinicId="@Model.ClinicId">
+                        More doctors at this clinic
+                    </a>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">This doctor is not assigned to a clinic yet.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
