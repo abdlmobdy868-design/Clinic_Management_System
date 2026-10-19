@@ -77,6 +77,11 @@ app.MapControllerRoute(
     pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}")
     .WithStaticAssets();
 
+app.MapControllerRoute(
+    name: "customer-home",
+    pattern: "",
+    defaults: new { area = "Customer", controller = "Home", action = "Index" })
+    .WithStaticAssets();
 
 app.MapControllerRoute(
     name: "default",
