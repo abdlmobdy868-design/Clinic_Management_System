@@ -111,7 +111,7 @@ namespace Clinic_Management_System.Migrations
                     b.Property<int>("ClinicId")
                         .HasColumnType("int");
 
-                    b.Property<int>("DoctorId")
+                    b.Property<int?>("DoctorId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("EndTime")
@@ -120,7 +120,7 @@ namespace Clinic_Management_System.Migrations
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
 
-                    b.Property<int>("PatientId")
+                    b.Property<int?>("PatientId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("StartTime")
@@ -154,7 +154,7 @@ namespace Clinic_Management_System.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("DepartmentId")
+                    b.Property<int?>("DepartmentId")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
@@ -267,7 +267,7 @@ namespace Clinic_Management_System.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<int>("DoctorId")
+                    b.Property<int?>("DoctorId")
                         .HasColumnType("int");
 
                     b.Property<string>("MedicalHistory")
@@ -276,7 +276,7 @@ namespace Clinic_Management_System.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PatientId")
+                    b.Property<int?>("PatientId")
                         .HasColumnType("int");
 
                     b.Property<string>("Symptoms")
@@ -343,10 +343,10 @@ namespace Clinic_Management_System.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("AppointmentId")
+                    b.Property<int?>("AppointmentId")
                         .HasColumnType("int");
 
-                    b.Property<int>("PatientId")
+                    b.Property<int?>("PatientId")
                         .HasColumnType("int");
 
                     b.Property<int>("PaymentMethod")
@@ -375,7 +375,7 @@ namespace Clinic_Management_System.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("MedicalRecordId")
+                    b.Property<int?>("MedicalRecordId")
                         .HasColumnType("int");
 
                     b.Property<string>("Notes")
@@ -462,10 +462,10 @@ namespace Clinic_Management_System.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("LabTestId")
+                    b.Property<int?>("LabTestId")
                         .HasColumnType("int");
 
-                    b.Property<int>("MedicalRecordId")
+                    b.Property<int?>("MedicalRecordId")
                         .HasColumnType("int");
 
                     b.Property<string>("ResultFileUrl")
@@ -628,14 +628,12 @@ namespace Clinic_Management_System.Migrations
                     b.HasOne("ClinicManagementSystem.Models.Doctor", "Doctor")
                         .WithMany()
                         .HasForeignKey("DoctorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("ClinicManagementSystem.Models.Patient", "Patient")
                         .WithMany()
                         .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Clinic");
 
@@ -681,14 +679,12 @@ namespace Clinic_Management_System.Migrations
                     b.HasOne("ClinicManagementSystem.Models.Doctor", "Doctor")
                         .WithMany()
                         .HasForeignKey("DoctorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("ClinicManagementSystem.Models.Patient", "Patient")
                         .WithMany()
                         .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Appointment");
 
@@ -712,14 +708,12 @@ namespace Clinic_Management_System.Migrations
                     b.HasOne("ClinicManagementSystem.Models.Appointment", "Appointment")
                         .WithMany()
                         .HasForeignKey("AppointmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("ClinicManagementSystem.Models.Patient", "Patient")
                         .WithMany()
                         .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Appointment");
 
@@ -731,8 +725,7 @@ namespace Clinic_Management_System.Migrations
                     b.HasOne("ClinicManagementSystem.Models.MedicalRecord", "MedicalRecord")
                         .WithMany()
                         .HasForeignKey("MedicalRecordId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("MedicalRecord");
                 });
@@ -772,14 +765,12 @@ namespace Clinic_Management_System.Migrations
                     b.HasOne("ClinicManagementSystem.Models.LabTest", "LabTest")
                         .WithMany()
                         .HasForeignKey("LabTestId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("ClinicManagementSystem.Models.MedicalRecord", "MedicalRecord")
                         .WithMany()
                         .HasForeignKey("MedicalRecordId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("LabTest");
 
