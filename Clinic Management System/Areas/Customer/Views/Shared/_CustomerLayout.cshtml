@@ -29,7 +29,8 @@
                         {
                             <a class="btn btn-light btn-sm" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Admin dashboard</a>
                         }
-                        <span class="text-white small d-none d-lg-inline">@User.Identity!.Name</span>
+                        <a class="btn btn-outline-light btn-sm" asp-area="Customer" asp-controller="Profile" asp-action="Index">@User.Identity!.Name</a>
+                        
                         <a class="btn btn-outline-light btn-sm" asp-area="" asp-controller="Account" asp-action="Logout">Logout</a>
                     }
                     else

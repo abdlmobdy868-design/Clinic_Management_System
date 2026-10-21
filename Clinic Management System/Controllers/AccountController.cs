@@ -1,4 +1,5 @@
 ﻿
+using ClinicManagementSystem.Areas.Customer.Controllers;
 using ClinicManagementSystem.Models;
 using ClinicManagementSystem.ViewModel;
 using Microsoft.AspNetCore.Identity;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ClinicManagementSystem.Controllers
 {
+    
     public class AccountController : Controller
     {
   
@@ -36,8 +38,17 @@ namespace ClinicManagementSystem.Controllers
             var result = await _userManager.CreateAsync(user, vm.Password);
             if (result.Succeeded)
             {
+                if(vm.UserType == "Doctor")/////////////////////////////////
+                {
+                    var newDoc = new Doctor { ApplicationUserId = user.Id, Name = user.FullName };
+                }
+                else if (vm.UserType == "Patient")////////////////////////////////
+                {
+                    var newPatient = new Patient { ApplicationUserId = user.Id, Name = user.FullName, Age = 20, Gender = Utilities.Gender.male };
+                }
+
                 await _signInManager.SignInAsync(user, false);
-                return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+                return RedirectToAction("Index", "Home", new { area = "Customer" });
             }
             foreach (var e in result.Errors) ModelState.AddModelError("", e.Description);
             return View(vm);
@@ -48,6 +59,12 @@ namespace ClinicManagementSystem.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(LoginVM loginVM)
         {
+         
+            if (!ModelState.IsValid)
+            {
+                return View(loginVM);
+            }
+
             var user = await _userManager.FindByEmailAsync(loginVM.UserNameOrEmail) ??
                 await _userManager.FindByNameAsync(loginVM.UserNameOrEmail);
 
@@ -63,18 +80,17 @@ namespace ClinicManagementSystem.Controllers
             {
                 if (result.IsLockedOut)
                 {
-                    ModelState.AddModelError("", "to many attemps please try again later");
+                    ModelState.AddModelError("", "Too many attempts, please try again later");
                 }
                 else if (result.IsNotAllowed)
                 {
-                    ModelState.AddModelError("", "please confirme your email");
+                    ModelState.AddModelError("", "Please confirm your email");
                 }
                 else
                 {
                     ModelState.AddModelError("", "Invalid user name or password");
                 }
                 return View(loginVM);
-
             }
 
             return RedirectToAction("Index", "Home", new { area = "Customer" });
