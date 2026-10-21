@@ -1,0 +1,88 @@
+﻿@model IEnumerable<ClinicManagementSystem.Models.Appointment>
+
+@{
+    ViewData["Title"] = "My Appointments";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow border-0 rounded-4">
+                <div class="card-header bg-primary text-white p-4 rounded-top-4 d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0"><i class="fas fa-calendar-alt me-2"></i> My Appointments</h3>
+                    <a asp-area="Customer" asp-controller="Doctors" asp-action="Index" class="btn btn-light btn-sm px-3">
+                        <i class="fas fa-plus me-1"></i> Book New Appointment
+                    </a>
+                </div>
+                <div class="card-body p-4">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success">@TempData["Success"]</div>
+                    }
+
+                    @if (!Model.Any())
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-calendar-xmark fa-3x text-muted mb-3"></i>
+                            <p class="text-muted fs-5">You don't have any appointments booked yet.</p>
+                            <a asp-area="Customer" asp-controller="Doctors" asp-action="Index" class="btn btn-primary mt-2">Browse Doctors</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Doctor</th>
+                                        <th>Clinic</th>
+                                        <th>Date & Time</th>
+                                        <th>Fee</th>
+                                        <th>Status</th>
+                                        <th class="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model)
+                                    {
+                                        <tr>
+                                            <td class="fw-semibold">@(item.Doctor?.Name ?? "N/A")</td>
+                                            <td>@(item.Clinic?.Name ?? "N/A")</td>
+                                            <td>
+                                                <div><i class="far fa-calendar-alt text-primary me-1"></i> @item.StartTime.ToString("dd MMM yyyy")</div>
+                                                <small class="text-muted"><i class="far fa-clock me-1"></i> @item.StartTime.ToString("hh:mm tt") - @item.EndTime.ToString("hh:mm tt")</small>
+                                            </td>
+                                            <td class="fw-bold text-success">@item.price.ToString("N0") EGP</td>
+                                            <td>
+                                                @if (item.Status == AppointmentStatus.Confirmed)
+                                                {
+                                                    <span class="badge bg-success">Confirmed</span>
+                                                }
+                                                else if (item.Status == AppointmentStatus.Cancelled)
+                                                {
+                                                    <span class="badge bg-danger">Cancelled</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning text-dark">Pending</span>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                <!-- زر الدفع Pay -->
+                                                <form asp-action="Pay" asp-route-id="@item.Id" method="post" class="d-inline">
+                                                    <button type="submit" class="btn btn-outline-success btn-sm px-3">
+                                                        <i class="fas fa-credit-card me-1"></i> Pay
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

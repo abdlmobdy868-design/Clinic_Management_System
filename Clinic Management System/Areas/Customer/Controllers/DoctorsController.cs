@@ -1,7 +1,9 @@
 using ClinicManagementSystem.Areas.Customer.ViewModels;
 using ClinicManagementSystem.Data;
+using ClinicManagementSystem.Models;
 using ClinicManagementSystem.Utilities;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -16,10 +18,12 @@ namespace ClinicManagementSystem.Areas.Customer.Controllers
         private const int SlotHorizonDays = 14;
 
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public DoctorsController(ApplicationDbContext context)
+        public DoctorsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET /Customer/Doctors?q=&clinicId=&departmentId=&specialization=&sort=&availableOnly=&page=
@@ -49,8 +53,6 @@ namespace ClinicManagementSystem.Areas.Customer.Controllers
             if (!string.IsNullOrWhiteSpace(specialization))
                 query = query.Where(d => d.Specialization == specialization);
 
-            // Doctor counts in a clinic system are small, so ratings/slots are aggregated
-            // per page-load for the filtered doctors and sorted in memory.
             var doctors = await query.ToListAsync();
             var ids = doctors.Select(d => d.Id).ToList();
 
@@ -62,8 +64,8 @@ namespace ClinicManagementSystem.Areas.Customer.Controllers
                     .ToListAsync())
                 .ToDictionary(x => x.DoctorId);
 
-            // ---- 3) open slots (available, unbooked, in the future) ----
-            var slotMap = (await _context.Appointments.AsNoTracking()
+            // ---- 3) available appointments (unbooked & available in future) ----
+            var appointmentMap = (await _context.Appointments.AsNoTracking()
                     .Where(a => a.DoctorId != null && ids.Contains(a.DoctorId.Value)
                                 && a.IsAvailable && a.PatientId == null
                                 && a.StartTime >= now && a.Status != AppointmentStatus.Cancelled)
@@ -76,7 +78,7 @@ namespace ClinicManagementSystem.Areas.Customer.Controllers
             var cards = doctors.Select(d =>
             {
                 ratingMap.TryGetValue(d.Id, out var r);
-                slotMap.TryGetValue(d.Id, out var s);
+                appointmentMap.TryGetValue(d.Id, out var a);
                 return new DoctorCardVM
                 {
                     Id = d.Id,
@@ -87,9 +89,9 @@ namespace ClinicManagementSystem.Areas.Customer.Controllers
                     ClinicName = d.Department?.Clinic?.Name,
                     AverageRating = r?.Avg ?? 0,
                     ReviewCount = r?.Count ?? 0,
-                    OpenSlots = s?.Count ?? 0,
-                    NextSlot = s?.Next,
-                    FromPrice = s?.Price
+                    OpenSlots = a?.Count ?? 0,
+                    NextSlot = a?.Next,
+                    FromPrice = a?.Price
                 };
             }).ToList();
 
@@ -165,18 +167,18 @@ namespace ClinicManagementSystem.Areas.Customer.Controllers
             var breakdown = Enumerable.Range(1, 5).Reverse()
                 .ToDictionary(stars => stars, stars => reviews.Count(r => r.Rating == stars));
 
-            // ---- open slots for the next N days ----
+            // ---- available appointments for next horizon days ----
             var now = DateTime.Now;
             var horizon = now.AddDays(SlotHorizonDays);
 
-            var slots = await _context.Appointments.AsNoTracking()
+            var availableAppointments = await _context.Appointments.AsNoTracking()
                 .Where(a => a.DoctorId == id && a.IsAvailable && a.PatientId == null
                             && a.StartTime >= now && a.StartTime <= horizon
                             && a.Status != AppointmentStatus.Cancelled)
                 .OrderBy(a => a.StartTime)
                 .ToListAsync();
 
-            var slotDays = slots
+            var appointmentDays = availableAppointments
                 .GroupBy(a => a.StartTime.Date)
                 .Select(g => new SlotDayVM
                 {
@@ -206,7 +208,6 @@ namespace ClinicManagementSystem.Areas.Customer.Controllers
                 ReviewCount = reviews.Count,
                 AverageRating = reviews.Count == 0 ? 0 : reviews.Average(r => (double)r.Rating),
                 RatingBreakdown = breakdown,
-                // show first names only on a public page
                 Reviews = reviews.Take(20).Select(r => new ReviewVM
                 {
                     ReviewerName = FirstName(r.Patient?.Name ?? r.Patient?.ApplicationUser?.FullName),
@@ -214,11 +215,51 @@ namespace ClinicManagementSystem.Areas.Customer.Controllers
                     Comment = r.Comment,
                     Date = r.Date
                 }).ToList(),
-                SlotDays = slotDays,
-                TotalOpenSlots = slots.Count
+                SlotDays = appointmentDays,
+                TotalOpenSlots = availableAppointments.Count
             };
 
             return View(vm);
+        }
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> BookAppointment(int appointmentId)
+        {
+            
+            var userId = _userManager.GetUserId(User);
+
+            
+            var patient = await _context.Patients
+                .FirstOrDefaultAsync(p => p.ApplicationUserId == userId);
+
+            if (patient == null)
+            {
+                TempData["Error"] = "Please complete your patient profile first.";
+                return RedirectToAction("Index", "Profile", new { area = "Customer" });
+            }
+
+           
+            var appointment = await _context.Appointments
+                .FirstOrDefaultAsync(a => a.Id == appointmentId && a.IsAvailable && a.PatientId == null);
+
+            if (appointment == null)
+            {
+                TempData["Error"] = "Selected appointment is no longer available.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            
+            appointment.PatientId = patient.Id;
+            
+            appointment.Status = AppointmentStatus.Pending; 
+
+            _context.Appointments.Update(appointment);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Appointment booked successfully!";
+
+            
+            return RedirectToAction("Index", "Home", new { area = "Customer" });
         }
 
         private static string FirstName(string? fullName)

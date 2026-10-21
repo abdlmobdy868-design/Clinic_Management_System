@@ -49,7 +49,31 @@ namespace ClinicManagementSystem.Areas.Customer.Controllers
             return View(patient);
         }
 
-        
+        [HttpGet]
+        public async Task<IActionResult> UserAppointment()
+        {
+            var userId = _userManager.GetUserId(User);
+
+            var patient = await _context.Patients
+                .FirstOrDefaultAsync(p => p.ApplicationUserId == userId);
+
+            
+            if (patient == null)
+            {
+                return View(new List<Appointment>()); 
+            }
+
+            var userAppointments = await _context.Appointments
+                .Include(a => a.Doctor)
+                .Include(a => a.Clinic)
+                .Where(a => a.PatientId == patient.Id)
+                .OrderByDescending(a => a.StartTime)
+                .ToListAsync();
+
+            return View(userAppointments);
+        }
+
+
         [HttpGet]
         public async Task<IActionResult> Edit()
         {

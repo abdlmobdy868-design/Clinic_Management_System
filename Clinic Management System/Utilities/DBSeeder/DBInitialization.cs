@@ -57,6 +57,41 @@ namespace Clinic_Management_System.Utilities.DBSeeder
             }
 
         }
-        
+        public async Task SeedAppointmentsAsync()
+        {
+            if (await _context.Appointments.AnyAsync()) return;
+
+            var doctors = await _context.Doctors.Include(d => d.Department).ToListAsync();
+            var now = DateTime.Now.Date.AddDays(1);
+
+            var appointmentsList = new List<Appointment>();
+
+            foreach (var doctor in doctors)
+            {
+                for (int day = 0; day < 5; day++)
+                {
+                    var currentDate = now.AddDays(day);
+
+                    for (int hour = 10; hour < 14; hour += 1)
+                    {
+                        appointmentsList.Add(new Appointment
+                        {
+                            DoctorId = doctor.Id,
+                            ClinicId = doctor.Department?.ClinicId ?? 1,
+                            StartTime = currentDate.AddHours(hour),
+                            EndTime = currentDate.AddHours(hour).AddMinutes(45),
+                            IsAvailable = true,
+                            PatientId = null,
+                            Status = AppointmentStatus.Pending,
+                            price = 250
+                        });
+                    }
+                }
+            }
+
+            await _context.Appointments.AddRangeAsync(appointmentsList);
+            await _context.SaveChangesAsync();
+        }
+
     }
 }

@@ -13,7 +13,7 @@
 <div class="container py-4">
     <div class="row g-4">
 
-        <!-- Left column: info + slots + reviews -->
+        <!-- Left column: info + appointments + reviews -->
         <div class="col-lg-8">
 
             <!-- Profile -->
@@ -48,48 +48,66 @@
                         <div class="fact"><i class="fas fa-stethoscope"></i><div><small>Department</small><strong>@(Model.DepartmentName ?? "-")</strong></div></div>
                     </div>
                     <div class="col-sm-4">
-                        <div class="fact"><i class="fas fa-calendar-days"></i><div><small>Open slots (14 days)</small><strong>@Model.TotalOpenSlots</strong></div></div>
+                        <div class="fact"><i class="fas fa-calendar-days"></i><div><small>Available Appointments</small><strong>@Model.TotalOpenSlots</strong></div></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Slots -->
+            
+            <!-- Book Appointment Section -->
             <div class="card-soft mb-4">
                 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
-                    <h4 class="mb-0"><i class="fas fa-clock me-2 text-primary"></i>Available slots</h4>
-                    @if (!signedIn && Model.SlotDays.Any())
-                    {
-                        <a class="btn btn-primary btn-sm" asp-area="" asp-controller="Account" asp-action="Login">Sign in to book</a>
-                    }
+                    <h4 class="mb-0"><i class="fas fa-calendar-check me-2 text-primary"></i>Book Appointment</h4>
                 </div>
 
-                @if (!Model.SlotDays.Any())
+                @if (!signedIn)
                 {
-                    <div class="empty-state sm"><i class="fas fa-calendar-xmark"></i><p>No open slots in the next 14 days. Please check again later.</p></div>
+                    <div class="text-center py-3">
+                        <p class="text-muted mb-2">Please sign in as a patient to book an appointment with this doctor.</p>
+                        <a class="btn btn-primary btn-sm px-4" asp-area="" asp-controller="Account" asp-action="Login">Sign in to book</a>
+                    </div>
+                }
+                else if (!Model.SlotDays.Any())
+                {
+                    <div class="empty-state sm"><i class="fas fa-calendar-xmark"></i><p>No available appointments in the next 14 days. Please check again later.</p></div>
                 }
                 else
                 {
-                    foreach (var day in Model.SlotDays)
-                    {
-                        <div class="slot-day">
-                            <div class="slot-day-title">@day.Date.ToString("dddd, dd MMM yyyy")</div>
-                            <div class="slot-grid">
-                                @foreach (var s in day.Slots)
+                    // استخراج أقرب ميعاد متاح (أول موعد في أول يوم متاح)
+                    var earliestSlot = Model.SlotDays.SelectMany(d => d.Slots).OrderBy(s => s.Start).FirstOrDefault();
+
+                    <form asp-area="Customer" asp-controller="Doctors" asp-action="BookAppointment" method="post">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Select Appointment Time</label>
+                            <select name="appointmentId" class="form-select form-select-lg" id="appointmentSelect">
+                                @foreach (var day in Model.SlotDays)
                                 {
-                                    <div class="slot-chip" title="@s.Start.ToString("hh:mm tt") - @s.End.ToString("hh:mm tt")">
-                                        <strong>@s.Start.ToString("hh:mm tt")</strong>
-                                        @if (s.Price > 0)
+                                    <optgroup label="@day.Date.ToString("dddd, dd MMM yyyy")">
+                                        @foreach (var s in day.Slots)
                                         {
-                                            <small>Fee @s.Price.ToString("N0")</small>
+                                            <option value="@s.Id">
+                                                @s.Start.ToString("hh:mm tt") - @s.End.ToString("hh:mm tt")
+                                                @(s.Price > 0 ? $"(Fee: {s.Price:N0})" : "")
+                                            </option>
                                         }
-                                    </div>
+                                    </optgroup>
                                 }
-                            </div>
+                            </select>
                         </div>
-                    }
+
+                        @if (earliestSlot != null)
+                        {
+                            <div class="alert alert-info py-2 small mb-3">
+                                <i class="fas fa-info-circle me-1"></i> <strong>Earliest available:</strong> @earliestSlot.Start.ToString("dddd, dd MMM yyyy - hh:mm tt")
+                            </div>
+                        }
+
+                        <button type="submit" class="btn btn-primary w-100 py-2">
+                            <i class="fas fa-check-circle me-1"></i> Confirm Booking
+                        </button>
+                    </form>
                 }
             </div>
-
             <!-- Reviews -->
             <div class="card-soft">
                 <h4 class="mb-3"><i class="fas fa-star me-2 text-warning"></i>Patient reviews</h4>

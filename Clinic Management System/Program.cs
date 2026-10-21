@@ -39,6 +39,7 @@ using (var scope = app.Services.CreateScope())
 {
     var dbInitializer = scope.ServiceProvider.GetRequiredService<IDBInitialization>();
     await dbInitializer.InitializationAsync();
+    await dbInitializer.SeedAppointmentsAsync();
 }
 
 /*using (var scope = app.Services.CreateScope())
