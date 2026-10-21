@@ -39,6 +39,7 @@ using (var scope = app.Services.CreateScope())
 {
     var dbInitializer = scope.ServiceProvider.GetRequiredService<IDBInitialization>();
     await dbInitializer.InitializationAsync();
+    await dbInitializer.SeedAppointmentsAsync();
 }
 
 /*using (var scope = app.Services.CreateScope())
@@ -72,15 +73,18 @@ app.UseAuthorization();
 
 app.MapStaticAssets();
 
+
+
+
 app.MapControllerRoute(
-    name: "area",
-    pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}")
+    name: "areas",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Account}/{action=Login}")
+    pattern: "{controller=Account}/{action=Login}/{id?}")
     .WithStaticAssets();
 
 
