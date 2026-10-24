@@ -225,43 +225,50 @@ namespace ClinicManagementSystem.Areas.Customer.Controllers
         [Authorize]
         public async Task<IActionResult> BookAppointment(int appointmentId)
         {
-            
             var userId = _userManager.GetUserId(User);
-
-            
             var patient = await _context.Patients
                 .FirstOrDefaultAsync(p => p.ApplicationUserId == userId);
 
             if (patient == null)
             {
-                TempData["Error"] = "Please complete your patient profile first.";
-                return RedirectToAction("Index", "Profile", new { area = "Customer" });
+                var currentUser = await _userManager.FindByIdAsync(userId);
+
+                patient = new Patient
+                {
+                    ApplicationUserId = userId,
+                    Name = currentUser?.UserName ?? "New Patient",
+                    Age = 25,
+                    Gender = 0,
+                    Phone = currentUser?.PhoneNumber ?? "01000000000",
+                };
+
+                _context.Patients.Add(patient);
+                await _context.SaveChangesAsync();
             }
 
-           
-            var appointment = await _context.Appointments
-                .FirstOrDefaultAsync(a => a.Id == appointmentId && a.IsAvailable && a.PatientId == null);
+            var appointment = await _context.Appointments.FindAsync(appointmentId);
+            if (appointment == null) return RedirectToAction("Index");
 
-            if (appointment == null)
-            {
-                TempData["Error"] = "Selected appointment is no longer available.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            
             appointment.PatientId = patient.Id;
-            
-            appointment.Status = AppointmentStatus.Pending; 
+            appointment.Status = AppointmentStatus.Confirmed;
+            appointment.StartTime = DateTime.Now;
 
             _context.Appointments.Update(appointment);
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Appointment booked successfully!";
-
-            
-            return RedirectToAction("Index", "Home", new { area = "Customer" });
+            return RedirectToAction("UserAppointment", "Profile", new { area = "Customer" });
         }
-
+        [HttpPost]
+        public async Task<IActionResult> CompleteAppointment(int id)
+        {
+            var appointment = await _context.Appointments.FindAsync(id);
+            if (appointment != null)
+            {
+                appointment.Status = AppointmentStatus.Completed;
+                await _context.SaveChangesAsync();
+            }
+            return RedirectToAction("UserAppointment", "Profile", new { area = "Customer" });
+        }
         private static string FirstName(string? fullName)
         {
             if (string.IsNullOrWhiteSpace(fullName)) return "Patient";

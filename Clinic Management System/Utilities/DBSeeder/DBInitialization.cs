@@ -59,7 +59,9 @@ namespace Clinic_Management_System.Utilities.DBSeeder
         }
         public async Task SeedAppointmentsAsync()
         {
-            if (await _context.Appointments.AnyAsync()) return;
+            _context.Payments.RemoveRange(_context.Payments);
+            _context.Appointments.RemoveRange(_context.Appointments);
+            await _context.SaveChangesAsync();
 
             var doctors = await _context.Doctors.Include(d => d.Department).ToListAsync();
             var now = DateTime.Now.Date.AddDays(1);

@@ -1,0 +1,40 @@
+﻿@model IEnumerable<ClinicManagementSystem.Models.MedicalRecord>
+@{
+    ViewData["Title"] = "Medical Records";
+}
+
+<div class="container mt-4">
+    <h4>Medical Records</h4>
+
+    @if (!Model.Any())
+    {
+        <div style="background:#EDE8FF; border:1.5px solid #B8B0E0; border-radius:12px; padding:30px; text-align:center;">
+            No medical records found.
+        </div>
+    }
+    else
+    {
+        <div class="row gap-3 mt-3">
+            @foreach (var item in Model)
+            {
+                <div class="col-md-5" style="background:#EDE8FF; border:1.5px solid #B8B0E0; border-radius:12px; padding:18px 24px;">
+                    <div style="font-weight:600; color:#3D3A5C; font-size:18px;">@item.Diagnosis</div>
+                    <small style="color:#7A76A0;">Date: @item.CreatedAt.ToShortDateString()</small>
+
+                    @if (!string.IsNullOrEmpty(item.Symptoms))
+                    {
+                        <div class="mt-2"><small><b>Symptoms:</b> @item.Symptoms</small></div>
+                    }
+                    @if (!string.IsNullOrEmpty(item.VitalSigns))
+                    {
+                        <div class="mt-1"><small><b>Vitals:</b> @item.VitalSigns</small></div>
+                    }
+
+                    <div class="mt-2">
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm" style="background:#3D3A5C; color:white; border-radius:8px;">View Details</a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

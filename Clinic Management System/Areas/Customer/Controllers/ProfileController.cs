@@ -48,30 +48,35 @@ namespace ClinicManagementSystem.Areas.Customer.Controllers
 
             return View(patient);
         }
-
         [HttpGet]
         public async Task<IActionResult> UserAppointment()
         {
             var userId = _userManager.GetUserId(User);
+            var patient = await _context.Patients.FirstOrDefaultAsync(p => p.ApplicationUserId == userId);
 
-            var patient = await _context.Patients
-                .FirstOrDefaultAsync(p => p.ApplicationUserId == userId);
-
-            
-            if (patient == null)
-            {
-                return View(new List<Appointment>()); 
-            }
-
-            var userAppointments = await _context.Appointments
+            var query = _context.Appointments
+                .IgnoreQueryFilters()
                 .Include(a => a.Doctor)
                 .Include(a => a.Clinic)
-                .Where(a => a.PatientId == patient.Id)
-                .OrderByDescending(a => a.StartTime)
-                .ToListAsync();
+                .Include(a => a.Patient)
+                .OrderByDescending(a => a.StartTime);
 
-            return View(userAppointments);
+            List<Appointment> appointments;
+            if (User.IsInRole("Admin"))
+            {
+                appointments = await query.ToListAsync();
+            }
+            else
+            {
+                if (patient == null) appointments = new List<Appointment>();
+                else appointments = await query.Where(a => a.PatientId == patient.Id).ToListAsync();
+            }
+
+            ViewBag.Count = appointments.Count;
+            return View(appointments);
         }
+
+
 
 
         [HttpGet]

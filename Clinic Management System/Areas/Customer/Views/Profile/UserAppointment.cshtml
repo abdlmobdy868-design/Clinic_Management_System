@@ -1,5 +1,5 @@
 ﻿@model IEnumerable<ClinicManagementSystem.Models.Appointment>
-
+@using ClinicManagementSystem.Models
 @{
     ViewData["Title"] = "My Appointments";
 }
@@ -24,7 +24,7 @@
                     {
                         <div class="text-center py-5">
                             <i class="fas fa-calendar-xmark fa-3x text-muted mb-3"></i>
-                            <p class="text-muted fs-5">You don't have any appointments booked yet.</p>
+                            <p class="text-muted fs-6">You don't have any appointments booked yet.</p>
                             <a asp-area="Customer" asp-controller="Doctors" asp-action="Index" class="btn btn-primary mt-2">Browse Doctors</a>
                         </div>
                     }
@@ -52,7 +52,7 @@
                                                 <div><i class="far fa-calendar-alt text-primary me-1"></i> @item.StartTime.ToString("dd MMM yyyy")</div>
                                                 <small class="text-muted"><i class="far fa-clock me-1"></i> @item.StartTime.ToString("hh:mm tt") - @item.EndTime.ToString("hh:mm tt")</small>
                                             </td>
-                                            <td class="fw-bold text-success">@item.price.ToString("N0") EGP</td>
+                                            <td class="fw-bold text-success">@item.price. EGP</td>
                                             <td>
                                                 @if (item.Status == AppointmentStatus.Confirmed)
                                                 {
@@ -60,20 +60,47 @@
                                                 }
                                                 else if (item.Status == AppointmentStatus.Cancelled)
                                                 {
+
                                                     <span class="badge bg-danger">Cancelled</span>
+                                                }
+                                                else if (item.Status == AppointmentStatus.Completed)
+                                                {
+
+                                                    <span class="badge bg-primary">Completed</span>
+
                                                 }
                                                 else
                                                 {
+
                                                     <span class="badge bg-warning text-dark">Pending</span>
                                                 }
                                             </td>
                                             <td class="text-center">
-                                                <!-- زر الدفع Pay -->
-                                                <form asp-action="Pay" asp-route-id="@item.Id" method="post" class="d-inline">
-                                                    <button type="submit" class="btn btn-outline-success btn-sm px-3">
-                                                        <i class="fas fa-credit-card me-1"></i> Pay
-                                                    </button>
-                                                </form>
+                                                @if (item.Status == AppointmentStatus.Pending || item.Status == AppointmentStatus.Confirmed)
+                                                {
+                                                    <form asp-action="Pay" asp-route-id="@item.Id" method="post" class="d-inline">
+                                                        <button type="submit" class="btn btn-outline-success btn-sm px-3"><i class="fas fa-credit-card me-1"></i> Pay</button>
+                                                    </form>
+                                                    <form asp-action="Cancel" asp-route-id="@item.Id" method="post" class="d-inline ms-1">
+                                                        <button type="submit" class="btn btn-outline-danger btn-sm px-3"><i class="fas fa-times me-1"></i> Cancel</button>
+                                                    </form>
+                                                    <form asp-area="Customer" asp-controller="Doctors" asp-action="CompleteAppointment" method="post" class="d-inline ms-1">
+                                                        <input type="hidden" name="id" value="@item.Id" />
+                                                        <button type="submit" class="btn btn-success btn-sm">Complete</button>
+                                                    </form>
+                                                }
+                                                else if (item.Status == AppointmentStatus.Completed)
+                                                {
+                                                    <div class="d-flex flex-column gap-1">
+                                                        <a asp-area="Customer" asp-controller="MedicalRecords" asp-action="Index" asp-route-appointmentId="@item.Id" class="btn btn-sm" style="background:#EDE8FF; border:1px solid #B8B0E0; color:#3D3A5C;"><i class="fas fa-file-medical me-1"></i> Medical Record</a>
+                                                        <a asp-area="Customer" asp-controller="LabResults" asp-action="Index" asp-route-appointmentId="@item.Id" class="btn btn-sm" style="background:#EDE8FF; border:1px solid #B8B0E0; color:#3D3A5C;"><i class="fas fa-vial me-1"></i> Lab Results</a>
+                                                        <a asp-area="Customer" asp-controller="Reviews" asp-action="Index" asp-route-id="@item.Id" class="btn btn-sm" style="background:#3D3A5C; color:white;"><i class="fas fa-star me-1"></i> Leave Review</a>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">No actions</span>
+                                                }
                                             </td>
                                         </tr>
                                     }

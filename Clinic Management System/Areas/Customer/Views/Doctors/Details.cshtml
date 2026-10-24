@@ -153,6 +153,35 @@
                             }
                         </div>
                     }
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <hr class="my-4" />
+                        <div class="p-3" style="background:#f6f7ff; border-radius:12px;">
+                            <h6 class="fw-bold mb-3">Write your review</h6>
+                            <form asp-controller="Reviews" asp-action="Create" method="post">
+                                <input type="hidden" name="DoctorId" value="@Model.Id" />
+                                <div class="row g-2">
+                                    <div class="col-sm-4">
+                                        <select name="Rating" class="form-select" required>
+                                            <option value="5">5 ★ Excellent</option>
+                                            <option value="4">4 ★ Very Good</option>
+                                            <option value="3">3 ★ Good</option>
+                                            <option value="2">2 ★ Fair</option>
+                                            <option value="1">1 ★ Poor</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <textarea name="Comment" class="form-control" rows="2" placeholder="Share your experience..." required></textarea>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary mt-2 w-100">Submit Review</button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="mt-3"><a href="/Identity/Account/Login">Login</a> to write a review</p>
+                    }
                 }
             </div>
         </div>

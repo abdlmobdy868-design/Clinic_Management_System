@@ -1,0 +1,11 @@
+﻿@model ClinicManagementSystem.Models.MedicalRecord
+<div class="container mt-4">
+    <div style="background:#EDE8FF; border-radius:12px; padding:24px; border:1.5px solid #B8B0E0;">
+        <h4>@Model.Diagnosis</h4>
+        <p><b>Date:</b> @Model.CreatedAt</p>
+        <p><b>Symptoms:</b> @Model.Symptoms</p>
+        <p><b>Medical History:</b> @Model.MedicalHistory</p>
+        <p><b>Vital Signs:</b> @Model.VitalSigns</p>
+        <p><b>Notes:</b> @Model.Notes</p>
+    </div>
+</div>
