@@ -1,0 +1,53 @@
+@model ClinicManagementSystem.Models.Prescription
+@{
+    ViewData["Title"] = "Prescription";
+    var items = ViewBag.Items as List<ClinicManagementSystem.Models.PrescriptionItems> ?? new List<ClinicManagementSystem.Models.PrescriptionItems>();
+}
+
+<section class="page-head">
+    <div class="container">
+        <a class="back-link" asp-action="Index"><i class="fas fa-arrow-left"></i> Back to prescriptions</a>
+    </div>
+</section>
+
+<div class="container py-4" style="max-width: 800px;">
+    <div class="card-soft">
+        <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
+            <div>
+                <h4 class="mb-1">Prescription</h4>
+                <div class="text-muted">Dr. @(Model.MedicalRecord?.Doctor?.Name ?? "-") &middot; @Model.Date.ToString("dd MMM yyyy")</div>
+            </div>
+            <button type="button" class="btn btn-outline-primary btn-sm align-self-start" onclick="window.print()">
+                <i class="fas fa-print me-1"></i> Print
+            </button>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Notes))
+        {
+            <p><b>Notes:</b> @Model.Notes</p>
+        }
+
+        @if (!items.Any())
+        {
+            <p class="text-muted mb-0">No medicines listed yet.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead><tr><th>Medicine</th><th>Dosage</th><th>Duration</th></tr></thead>
+                    <tbody>
+                        @foreach (var i in items)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@i.MedicineName</td>
+                                <td>@i.Dosage</td>
+                                <td>@i.Duration</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

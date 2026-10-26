@@ -1,0 +1,38 @@
+@model ReviewInputVM
+@{
+    ViewData["Title"] = "Leave a Review";
+}
+
+<div class="container mt-4" style="max-width: 560px;">
+    <div style="background:#EDE8FF; border:1.5px solid #B8B0E0; border-radius:12px; padding:24px;">
+        <h5 style="color:#3D3A5C; font-weight:600;">Review for @Model.DoctorName</h5>
+
+        <form asp-action="Create" method="post">
+            <input type="hidden" asp-for="AppointmentId" />
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="mb-3">
+                <label class="form-label">Rating</label>
+                <select asp-for="Rating" class="form-select" style="border-radius:8px;">
+                    <option value="5">★★★★★ (5)</option>
+                    <option value="4">★★★★ (4)</option>
+                    <option value="3">★★★ (3)</option>
+                    <option value="2">★★ (2)</option>
+                    <option value="1">★ (1)</option>
+                </select>
+                <span asp-validation-for="Rating" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Comment</label>
+                <textarea asp-for="Comment" class="form-control" rows="4" style="border-radius:8px;" placeholder="How was your experience?"></textarea>
+                <span asp-validation-for="Comment" class="text-danger"></span>
+            </div>
+
+            <div class="d-flex gap-2">
+                <a asp-controller="Profile" asp-action="UserAppointment" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn" style="background:#3D3A5C; color:white; border-radius:8px;">Submit Review</button>
+            </div>
+        </form>
+    </div>
+</div>

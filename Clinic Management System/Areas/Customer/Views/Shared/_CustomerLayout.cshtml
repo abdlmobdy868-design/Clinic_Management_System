@@ -21,6 +21,14 @@
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item"><a class="nav-link" asp-area="Customer" asp-controller="Home" asp-action="Index">Home</a></li>
                     <li class="nav-item"><a class="nav-link" asp-area="Customer" asp-controller="Doctors" asp-action="Index">Doctors</a></li>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <li class="nav-item"><a class="nav-link" asp-area="Customer" asp-controller="Profile" asp-action="UserAppointment">My appointments</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-area="Customer" asp-controller="MedicalRecords" asp-action="Index">Records</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-area="Customer" asp-controller="LabResults" asp-action="Index">Lab results</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-area="Customer" asp-controller="Prescriptions" asp-action="Index">Prescriptions</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-area="Customer" asp-controller="Reviews" asp-action="Index">Reviews</a></li>
+                    }
                 </ul>
                 <div class="d-flex gap-2 align-items-center">
                     @if (User.Identity?.IsAuthenticated == true)

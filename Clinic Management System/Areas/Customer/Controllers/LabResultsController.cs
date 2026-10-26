@@ -1,8 +1,8 @@
-﻿using ClinicManagementSystem.Data;
+using ClinicManagementSystem.Data;
+using ClinicManagementSystem.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace ClinicManagementSystem.Areas.Customer.Controllers
 {
@@ -16,25 +16,37 @@ namespace ClinicManagementSystem.Areas.Customer.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index(int? appointmentId)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var patient = await PatientHelper.FindAsync(_context, User);
+            if (patient == null) return View(new List<labResult>());
 
-            var results = _context.labResults
+            var query = _context.labResults.AsNoTracking()
                 .Include(x => x.MedicalRecord)
                 .Include(x => x.LabTest)
-                .Where(x => x.MedicalRecord != null && x.MedicalRecord.PatientId.ToString() == userId)
-                .ToList();
+                .Where(x => x.MedicalRecord != null && x.MedicalRecord.PatientId == patient.Id);
 
-            return View(results);
+            if (appointmentId != null)
+                query = query.Where(x => x.MedicalRecord!.AppointmentId == appointmentId);
+
+            return View(await query.OrderByDescending(x => x.Date).ToListAsync());
         }
 
-        public IActionResult Download(int id)
+        public async Task<IActionResult> Download(int id)
         {
-            var file = _context.labResults.Find(id);
+            var patient = await PatientHelper.FindAsync(_context, User);
+            if (patient == null) return NotFound();
+
+            var file = await _context.labResults.AsNoTracking()
+                .Include(x => x.MedicalRecord)
+                .FirstOrDefaultAsync(x => x.Id == id
+                                          && x.MedicalRecord != null
+                                          && x.MedicalRecord.PatientId == patient.Id);
+
             if (file == null || string.IsNullOrEmpty(file.ResultFileUrl))
                 return NotFound();
 
+            // ResultFileUrl is a web path like /uploads/labs/xxx.pdf
             return File(file.ResultFileUrl, "application/pdf");
         }
     }

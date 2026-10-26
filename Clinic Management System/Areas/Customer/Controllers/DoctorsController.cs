@@ -221,54 +221,73 @@ namespace ClinicManagementSystem.Areas.Customer.Controllers
 
             return View(vm);
         }
+        // Claims a free slot for the logged-in patient.
+        // The UPDATE only succeeds while the slot is still free, so two people clicking
+        // at the same time can never book the same slot (the second one gets 0 rows).
         [HttpPost]
         [Authorize]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> BookAppointment(int appointmentId)
         {
-            var userId = _userManager.GetUserId(User);
-            var patient = await _context.Patients
-                .FirstOrDefaultAsync(p => p.ApplicationUserId == userId);
+            var patient = await PatientHelper.GetOrCreateAsync(_context, _userManager, User);
+            if (patient == null) return Challenge();
 
-            if (patient == null)
+            var slot = await _context.Appointments.AsNoTracking()
+                .Where(a => a.Id == appointmentId)
+                .Select(a => new { a.DoctorId })
+                .FirstOrDefaultAsync();
+            if (slot == null) return NotFound();
+
+            var now = DateTime.Now;
+            var claimed = await _context.Appointments
+                .Where(a => a.Id == appointmentId
+                            && a.PatientId == null
+                            && a.IsAvailable
+                            && a.Status != AppointmentStatus.Cancelled
+                            && a.StartTime > now)
+                .ExecuteUpdateAsync(set => set
+                    .SetProperty(a => a.PatientId, (int?)patient.Id)
+                    .SetProperty(a => a.IsAvailable, false)
+                    .SetProperty(a => a.Status, AppointmentStatus.Pending));
+
+            if (claimed == 0)
             {
-                var currentUser = await _userManager.FindByIdAsync(userId);
-
-                patient = new Patient
-                {
-                    ApplicationUserId = userId,
-                    Name = currentUser?.UserName ?? "New Patient",
-                    Age = 25,
-                    Gender = 0,
-                    Phone = currentUser?.PhoneNumber ?? "01000000000",
-                };
-
-                _context.Patients.Add(patient);
-                await _context.SaveChangesAsync();
+                TempData["Error"] = "Sorry, this time was just taken. Please choose another one.";
+                return slot.DoctorId.HasValue
+                    ? RedirectToAction(nameof(Details), new { id = slot.DoctorId.Value })
+                    : RedirectToAction(nameof(Index));
             }
 
-            var appointment = await _context.Appointments.FindAsync(appointmentId);
-            if (appointment == null) return RedirectToAction("Index");
-
-            appointment.PatientId = patient.Id;
-            appointment.Status = AppointmentStatus.Confirmed;
-            appointment.StartTime = DateTime.Now;
-
-            _context.Appointments.Update(appointment);
-            await _context.SaveChangesAsync();
-
+            TempData["Success"] = "Appointment booked. Please pay to confirm it.";
             return RedirectToAction("UserAppointment", "Profile", new { area = "Customer" });
         }
+
+        // Demo shortcut: lets the patient (or an admin) mark a visit as done so reviews and
+        // records unlock. Later this should be done by the Doctor, not the patient.
         [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CompleteAppointment(int id)
         {
-            var appointment = await _context.Appointments.FindAsync(id);
-            if (appointment != null)
+            var appointment = await _context.Appointments.FirstOrDefaultAsync(a => a.Id == id);
+            if (appointment == null) return NotFound();
+
+            var isAdmin = User.IsInRole(CD.ADMIN_ROLE) || User.IsInRole(CD.SUPER_ADMIN_ROLE);
+            if (!isAdmin)
+            {
+                var patient = await PatientHelper.FindAsync(_context, User);
+                if (patient == null || appointment.PatientId != patient.Id) return Forbid();
+            }
+
+            if (appointment.Status == AppointmentStatus.Pending || appointment.Status == AppointmentStatus.Confirmed)
             {
                 appointment.Status = AppointmentStatus.Completed;
                 await _context.SaveChangesAsync();
             }
+
             return RedirectToAction("UserAppointment", "Profile", new { area = "Customer" });
         }
+
         private static string FirstName(string? fullName)
         {
             if (string.IsNullOrWhiteSpace(fullName)) return "Patient";

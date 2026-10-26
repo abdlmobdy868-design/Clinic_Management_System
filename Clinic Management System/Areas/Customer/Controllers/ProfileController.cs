@@ -1,5 +1,6 @@
-﻿using ClinicManagementSystem.Data;
+using ClinicManagementSystem.Data;
 using ClinicManagementSystem.Models;
+using ClinicManagementSystem.Utilities;
 using ClinicManagementSystem.ViewModel; 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -49,7 +50,7 @@ namespace ClinicManagementSystem.Areas.Customer.Controllers
             return View(patient);
         }
         [HttpGet]
-        public async Task<IActionResult> UserAppointment()
+        public async Task<IActionResult> UserAppointment(string? status)
         {
             var userId = _userManager.GetUserId(User);
             var patient = await _context.Patients.FirstOrDefaultAsync(p => p.ApplicationUserId == userId);
@@ -72,6 +73,10 @@ namespace ClinicManagementSystem.Areas.Customer.Controllers
                 else appointments = await query.Where(a => a.PatientId == patient.Id).ToListAsync();
             }
 
+            if (Enum.TryParse<AppointmentStatus>(status, true, out var statusFilter))
+                appointments = appointments.Where(a => a.Status == statusFilter).ToList();
+
+            ViewBag.Status = status;
             ViewBag.Count = appointments.Count;
             return View(appointments);
         }
@@ -82,42 +87,99 @@ namespace ClinicManagementSystem.Areas.Customer.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit()
         {
-            var userId = _userManager.GetUserId(User);
-            var patient = await _context.Patients
-                .FirstOrDefaultAsync(p => p.ApplicationUserId == userId);
-
-            if (patient == null)
-            {
-                return NotFound();
-            }
-
+            var patient = await PatientHelper.GetOrCreateAsync(_context, _userManager, User);
+            if (patient == null) return Challenge();
             return View(patient);
         }
 
-        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Patient model)
         {
-            var userId = _userManager.GetUserId(User);
-            var patientInDb = await _context.Patients
-                .FirstOrDefaultAsync(p => p.ApplicationUserId == userId);
+            // Always edit the logged-in user's own row; Id / ApplicationUserId from the form are ignored.
+            var patientInDb = await PatientHelper.GetOrCreateAsync(_context, _userManager, User);
+            if (patientInDb == null) return Challenge();
 
-            
-               
-                patientInDb.Name = model.Name;
-                patientInDb.Phone = model.Phone;
-                patientInDb.Age = model.Age;
-                patientInDb.Gender = model.Gender;
-                patientInDb.BloodType = model.BloodType;
-                patientInDb.Address = model.Address;
+            if (string.IsNullOrWhiteSpace(model.Name) || model.Age < 0 || model.Age > 130)
+            {
+                ModelState.AddModelError(nameof(model.Name), "Please enter a valid name and age.");
+                model.Id = patientInDb.Id;
+                model.ApplicationUserId = patientInDb.ApplicationUserId;
+                return View(model);
+            }
 
-                _context.Patients.Update(patientInDb);
-            
+            patientInDb.Name = model.Name.Trim();
+            patientInDb.Phone = model.Phone;
+            patientInDb.Age = model.Age;
+            patientInDb.Gender = model.Gender;
+            patientInDb.BloodType = model.BloodType;
+            patientInDb.Address = model.Address;
 
             await _context.SaveChangesAsync();
             TempData["Success"] = "Profile updated successfully!";
             return RedirectToAction(nameof(Index));
+        }
+
+        // Simulated payment: records a Payment and confirms the appointment.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Pay(int id)
+        {
+            var patient = await PatientHelper.FindAsync(_context, User);
+            if (patient == null) return Forbid();
+
+            var appointment = await _context.Appointments
+                .FirstOrDefaultAsync(a => a.Id == id && a.PatientId == patient.Id);
+            if (appointment == null) return NotFound();
+
+            if (appointment.Status != AppointmentStatus.Pending)
+            {
+                TempData["Error"] = "This appointment can't be paid.";
+                return RedirectToAction(nameof(UserAppointment));
+            }
+
+            _context.Payments.Add(new Payment
+            {
+                AppointmentId = appointment.Id,
+                PatientId = patient.Id,
+                Amount = appointment.price,
+                PaymentMethod = PaymentMethod.CreditCard,
+                PaymentStatus = PaymentStatus.Paid
+            });
+            appointment.Status = AppointmentStatus.Confirmed;
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Payment received. Your appointment is confirmed.";
+            return RedirectToAction(nameof(UserAppointment));
+        }
+
+        // Cancelling frees the slot again so someone else can book it.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Cancel(int id)
+        {
+            var patient = await PatientHelper.FindAsync(_context, User);
+            if (patient == null) return Forbid();
+
+            var appointment = await _context.Appointments
+                .FirstOrDefaultAsync(a => a.Id == id && a.PatientId == patient.Id);
+            if (appointment == null) return NotFound();
+
+            if (appointment.Status == AppointmentStatus.Pending || appointment.Status == AppointmentStatus.Confirmed)
+            {
+                var payments = await _context.Payments
+                    .Where(p => p.AppointmentId == appointment.Id && p.PaymentStatus == PaymentStatus.Paid)
+                    .ToListAsync();
+                foreach (var pay in payments) pay.PaymentStatus = PaymentStatus.Refunded;
+
+                appointment.PatientId = null;
+                appointment.IsAvailable = true;
+                appointment.Status = AppointmentStatus.Pending;
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Appointment cancelled.";
+            }
+
+            return RedirectToAction(nameof(UserAppointment));
         }
     }
 }

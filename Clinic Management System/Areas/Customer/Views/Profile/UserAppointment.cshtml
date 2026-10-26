@@ -1,4 +1,4 @@
-﻿@model IEnumerable<ClinicManagementSystem.Models.Appointment>
+@model IEnumerable<ClinicManagementSystem.Models.Appointment>
 @using ClinicManagementSystem.Models
 @{
     ViewData["Title"] = "My Appointments";
@@ -19,6 +19,19 @@
                     {
                         <div class="alert alert-success">@TempData["Success"]</div>
                     }
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger">@TempData["Error"]</div>
+                    }
+
+                    @{ var currentStatus = ViewBag.Status as string; }
+                    <div class="mb-3 d-flex flex-wrap gap-2">
+                        <a asp-action="UserAppointment" class="btn btn-sm @(string.IsNullOrEmpty(currentStatus) ? "btn-primary" : "btn-outline-primary")">All</a>
+                        @foreach (var st in Enum.GetValues<AppointmentStatus>())
+                        {
+                            <a asp-action="UserAppointment" asp-route-status="@st" class="btn btn-sm @(currentStatus == st.ToString() ? "btn-primary" : "btn-outline-primary")">@st</a>
+                        }
+                    </div>
 
                     @if (!Model.Any())
                     {
@@ -78,9 +91,12 @@
                                             <td class="text-center">
                                                 @if (item.Status == AppointmentStatus.Pending || item.Status == AppointmentStatus.Confirmed)
                                                 {
-                                                    <form asp-action="Pay" asp-route-id="@item.Id" method="post" class="d-inline">
-                                                        <button type="submit" class="btn btn-outline-success btn-sm px-3"><i class="fas fa-credit-card me-1"></i> Pay</button>
-                                                    </form>
+                                                    @if (item.Status == AppointmentStatus.Pending)
+                                                    {
+                                                        <form asp-action="Pay" asp-route-id="@item.Id" method="post" class="d-inline">
+                                                            <button type="submit" class="btn btn-outline-success btn-sm px-3"><i class="fas fa-credit-card me-1"></i> Pay</button>
+                                                        </form>
+                                                    }
                                                     <form asp-action="Cancel" asp-route-id="@item.Id" method="post" class="d-inline ms-1">
                                                         <button type="submit" class="btn btn-outline-danger btn-sm px-3"><i class="fas fa-times me-1"></i> Cancel</button>
                                                     </form>
@@ -94,12 +110,24 @@
                                                     <div class="d-flex flex-column gap-1">
                                                         <a asp-area="Customer" asp-controller="MedicalRecords" asp-action="Index" asp-route-appointmentId="@item.Id" class="btn btn-sm" style="background:#EDE8FF; border:1px solid #B8B0E0; color:#3D3A5C;"><i class="fas fa-file-medical me-1"></i> Medical Record</a>
                                                         <a asp-area="Customer" asp-controller="LabResults" asp-action="Index" asp-route-appointmentId="@item.Id" class="btn btn-sm" style="background:#EDE8FF; border:1px solid #B8B0E0; color:#3D3A5C;"><i class="fas fa-vial me-1"></i> Lab Results</a>
-                                                        <a asp-area="Customer" asp-controller="Reviews" asp-action="Index" asp-route-id="@item.Id" class="btn btn-sm" style="background:#3D3A5C; color:white;"><i class="fas fa-star me-1"></i> Leave Review</a>
+                                                        <a asp-area="Customer" asp-controller="Reviews" asp-action="Create" asp-route-id="@item.Id" class="btn btn-sm" style="background:#3D3A5C; color:white;"><i class="fas fa-star me-1"></i> Leave Review</a>
+                                                        <a asp-area="Customer" asp-controller="Prescriptions" asp-action="Index" asp-route-appointmentId="@item.Id" class="btn btn-sm" style="background:#EDE8FF; border:1px solid #B8B0E0; color:#3D3A5C;"><i class="fas fa-prescription-bottle-medical me-1"></i> Prescription</a>
+                                                        @if (item.DoctorId != null)
+                                                        {
+                                                            <a asp-area="Customer" asp-controller="Doctors" asp-action="Details" asp-route-id="@item.DoctorId" class="btn btn-sm btn-outline-primary"><i class="fas fa-rotate-right me-1"></i> Book again</a>
+                                                        }
                                                     </div>
                                                 }
                                                 else
                                                 {
+                                                    @if (item.DoctorId != null)
+                                                {
+                                                    <a asp-area="Customer" asp-controller="Doctors" asp-action="Details" asp-route-id="@item.DoctorId" class="btn btn-sm btn-outline-primary"><i class="fas fa-rotate-right me-1"></i> Book again</a>
+                                                }
+                                                else
+                                                {
                                                     <span class="text-muted">No actions</span>
+                                                }
                                                 }
                                             </td>
                                         </tr>

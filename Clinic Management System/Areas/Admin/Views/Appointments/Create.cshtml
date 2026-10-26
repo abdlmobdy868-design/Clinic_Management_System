@@ -1,28 +1,68 @@
-﻿@model Appointment
-<div class="card p-4">
-    <h3>Add Appointment</h3>
+@model ClinicManagementSystem.ViewModel.SlotGeneratorVM
+@{
+    ViewData["Title"] = "Create slots";
+}
+
+<div class="card p-4 border-0 shadow-sm" style="max-width: 720px;">
+    <h3>Create free slots</h3>
+    <p class="text-muted">Pick a doctor and a time window. One free slot is created for every step (for example 10:00-14:00 with 45 minutes gives 5 slots per day). Patients then see and book them. Times that overlap an existing appointment are skipped.</p>
+
     <form asp-action="Create" method="post">
-        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-        <label>Doctor</label>
-        <select asp-for="DoctorId" asp-items="ViewBag.Doctors" class="form-control mb-2">
-            <option value="">-- Select Doctor --</option>
-        </select>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="DoctorId" class="form-label">Doctor</label>
+                <select asp-for="DoctorId" asp-items="Model.Doctors" class="form-select">
+                    <option value="">-- Select doctor --</option>
+                </select>
+                <span asp-validation-for="DoctorId" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="ClinicId" class="form-label">Clinic</label>
+                <select asp-for="ClinicId" asp-items="Model.Clinics" class="form-select">
+                    <option value="">Doctor's own clinic (default)</option>
+                </select>
+                <span asp-validation-for="ClinicId" class="text-danger"></span>
+            </div>
 
-        <label>Patient</label>
-        <select asp-for="PatientId" asp-items="ViewBag.Patients" class="form-control mb-2">
-            <option value="">-- Select Patient --</option>
-        </select>
+            <div class="col-md-6">
+                <label asp-for="StartDate" class="form-label">First day</label>
+                <input asp-for="StartDate" type="date" class="form-control" />
+                <span asp-validation-for="StartDate" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Days" class="form-label">Number of days (1-14)</label>
+                <input asp-for="Days" type="number" min="1" max="14" class="form-control" />
+                <span asp-validation-for="Days" class="text-danger"></span>
+            </div>
 
-        <label>Clinic</label>
-        <select asp-for="ClinicId" asp-items="ViewBag.Clinics" class="form-control mb-2">
-            <option value="">-- Select Clinic --</option>
-        </select>
+            <div class="col-md-4">
+                <label class="form-label">From</label>
+                <input type="time" name="FromTime" value="@Model.FromTime" class="form-control" />
+                <span asp-validation-for="FromTime" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">To</label>
+                <input type="time" name="ToTime" value="@Model.ToTime" class="form-control" />
+                <span asp-validation-for="ToTime" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="DurationMinutes" class="form-label">Minutes per slot</label>
+                <input asp-for="DurationMinutes" type="number" min="10" max="240" class="form-control" />
+                <span asp-validation-for="DurationMinutes" class="text-danger"></span>
+            </div>
 
-        <label>Date & Time</label>
-        <input asp-for="AppointmentDateTime" type="datetime-local" class="form-control mb-3" required />
+            <div class="col-md-4">
+                <label asp-for="Price" class="form-label">Fee (EGP)</label>
+                <input asp-for="Price" type="number" min="0" step="1" class="form-control" />
+                <span asp-validation-for="Price" class="text-danger"></span>
+            </div>
+        </div>
 
-
-        <button type="submit" class="btn btn-primary">Save Booking</button>
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary">Create slots</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+        </div>
     </form>
 </div>

@@ -1,4 +1,4 @@
-﻿@model IEnumerable<ClinicManagementSystem.Models.labResult>
+@model IEnumerable<ClinicManagementSystem.Models.labResult>
 
 @{
     ViewData["Title"] = "Lab Results";
@@ -19,10 +19,17 @@
             @foreach (var item in Model)
             {
                 <div class="col-md-5" style="background:#EDE8FF; border:1.5px solid #B8B0E0; border-radius:12px; padding:18px 24px;">
-                    <div style="font-weight:600; color:#3D3A5C;">@item.LabTest.Name</div>
+                    <div style="font-weight:600; color:#3D3A5C;">@(item.LabTest?.Name ?? "Lab test")</div>
                     <small style="color:#7A76A0;">Date: @item.Date.ToShortDateString()</small>
                     <div class="mt-2">
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm" style="background:#3D3A5C; color:white; border-radius:8px;">View / Download</a>
+                        @if (!string.IsNullOrEmpty(item.ResultFileUrl))
+                        {
+                            <a asp-action="Download" asp-route-id="@item.Id" class="btn btn-sm" style="background:#3D3A5C; color:white; border-radius:8px;">View / Download</a>
+                        }
+                        else
+                        {
+                            <span class="text-muted small">Result: @item.ResultValue</span>
+                        }
                     </div>
                 </div>
             }
