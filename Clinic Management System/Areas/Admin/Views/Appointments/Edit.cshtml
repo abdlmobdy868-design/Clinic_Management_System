@@ -1,14 +1,62 @@
-﻿@model Appointment
-<div class="card p-4">
-    <h3>Update Appointment</h3>
-    <form method="post">
+@using ClinicManagementSystem.Utilities
+@model ClinicManagementSystem.ViewModel.AppointmentEditVM
+@{
+    ViewData["Title"] = "Update appointment";
+}
+
+<div class="card p-4 border-0 shadow-sm" style="max-width: 720px;">
+    <h3>Update appointment #@Model.Id</h3>
+
+    <form asp-action="Edit" method="post">
         <input type="hidden" asp-for="Id" />
-        <label>Doctor</label>
-        <select asp-for="DoctorId" asp-items="ViewBag.Doctors" class="form-control mb-2"></select>
-        <label>Patient</label>
-        <select asp-for="PatientId" asp-items="ViewBag.Patients" class="form-control mb-2"></select>
-        <label>Date</label>
-        <input asp-for="AppointmentDateTime" type="datetime-local" class="form-control mb-2" />
-        <button class="btn btn-success">Save Update</button>
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="DoctorId" class="form-label">Doctor</label>
+                <select asp-for="DoctorId" asp-items="Model.Doctors" class="form-select"></select>
+                <span asp-validation-for="DoctorId" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="ClinicId" class="form-label">Clinic</label>
+                <select asp-for="ClinicId" asp-items="Model.Clinics" class="form-select"></select>
+                <span asp-validation-for="ClinicId" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="PatientId" class="form-label">Patient</label>
+                <select asp-for="PatientId" asp-items="Model.Patients" class="form-select">
+                    <option value="">-- None (free slot) --</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Status" class="form-label">Status</label>
+                <select asp-for="Status" asp-items="Html.GetEnumSelectList<AppointmentStatus>()" class="form-select"></select>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="StartTime" class="form-label">Starts</label>
+                <input asp-for="StartTime" type="datetime-local" class="form-control" />
+                <span asp-validation-for="StartTime" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="EndTime" class="form-label">Ends</label>
+                <input asp-for="EndTime" type="datetime-local" class="form-control" />
+                <span asp-validation-for="EndTime" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="Price" class="form-label">Fee (EGP)</label>
+                <input asp-for="Price" type="number" min="0" step="1" class="form-control" />
+                <span asp-validation-for="Price" class="text-danger"></span>
+            </div>
+        </div>
+
+        <p class="text-muted small mt-3 mb-0">Setting a patient marks the slot as booked. Cancelling an appointment refunds its paid payments.</p>
+
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-success">Save</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+        </div>
     </form>
 </div>

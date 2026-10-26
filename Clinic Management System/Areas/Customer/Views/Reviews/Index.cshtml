@@ -1,57 +1,44 @@
-﻿@model IEnumerable<ClinicManagementSystem.Models.Review>
+@model IEnumerable<ClinicManagementSystem.Models.Review>
 @{
     ViewData["Title"] = "My Reviews";
-    var myDoctors = ViewBag.MyDoctors as List<ClinicManagementSystem.Models.Doctor>;
 }
 
 <div class="container mt-4">
-    <div class="row">
-        <div class="col-md-5 mb-4">
-            <div style="background:#EDE8FF; border:1.5px solid #B8B0E0; border-radius:12px; padding:24px;">
-                <h5 style="color:#3D3A5C; font-weight:600;">Leave a Review</h5>
-                <form asp-action="Create" method="post">
-                    <div class="mb-3">
-                        <label class="form-label">Rating</label>
-                        <select name="rating" class="form-select" style="border-radius:8px;" required>
-                            <option value="5">★★★★★ (5)</option>
-                            <option value="4">★★★★ (4)</option>
-                            <option value="3">★★★ (3)</option>
-                            <option value="2">★★ (2)</option>
-                            <option value="1">★ (1)</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Comment</label>
-                        <textarea name="comment" class="form-control" rows="4" style="border-radius:8px;" placeholder="How was your experience?" required></textarea>
-                    </div>
-                    <button type="submit" class="btn w-100" style="background:#3D3A5C; color:white; border-radius:8px;">Submit Review</button>
-                </form>
-            </div>
-        </div>
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
 
-        <!-- List الريفيوز القديمة -->
-        <div class="col-md-7">
-            <h5 class="mb-3">My Previous Reviews</h5>
-            @if (!Model.Any())
-            {
-                <div style="background:#EDE8FF; border-radius:12px; padding:20px; text-align:center; color:#7A76A0;">No reviews yet.</div>
-            }
-            else
-            {
-                foreach (var r in Model)
-                {
-                    <div class="mb-3" style="background:#fff; border:1.5px solid #B8B0E0; border-radius:12px; padding:16px 20px;">
-                        <div style="color:#FFB400;">
-                            @for (int i = 0; i < r.Rating; i++)
-                            {
-                                <span>★</span>
-                            }
-                        </div>
-                        <p class="mt-2 mb-1">@r.Comment</p>
-                        <small style="color:#7A76A0;">@r.Date.ToShortDateString()</small>
-                    </div>
-                }
-            }
-        </div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">My Reviews</h5>
+        <a asp-controller="Profile" asp-action="UserAppointment" class="btn btn-sm btn-outline-secondary">
+            To review a doctor, open your completed appointments
+        </a>
     </div>
+
+    @if (!Model.Any())
+    {
+        <div style="background:#EDE8FF; border-radius:12px; padding:20px; text-align:center; color:#7A76A0;">No reviews yet.</div>
+    }
+    else
+    {
+        foreach (var r in Model)
+        {
+            <div class="mb-3" style="background:#fff; border:1.5px solid #B8B0E0; border-radius:12px; padding:16px 20px;">
+                <div class="fw-semibold">@(r.Doctor?.Name ?? "Doctor")</div>
+                <div style="color:#FFB400;">
+                    @for (int i = 0; i < r.Rating; i++)
+                    {
+                        <span>★</span>
+                    }
+                </div>
+                <p class="mt-2 mb-1">@r.Comment</p>
+                <small style="color:#7A76A0;">@r.Date.ToShortDateString()</small>
+            </div>
+        }
+    }
 </div>

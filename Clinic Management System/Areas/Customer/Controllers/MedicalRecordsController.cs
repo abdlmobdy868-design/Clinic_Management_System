@@ -1,9 +1,8 @@
-﻿using ClinicManagementSystem.Data;
+using ClinicManagementSystem.Data;
 using ClinicManagementSystem.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace ClinicManagementSystem.Areas.Customer.Controllers
 {
@@ -19,17 +18,17 @@ namespace ClinicManagementSystem.Areas.Customer.Controllers
 
         public async Task<IActionResult> Index(int? appointmentId)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var patient = await PatientHelper.FindAsync(_context, User);
+            if (patient == null) return View(new List<MedicalRecord>());
 
-            var query = _context.MedicalRecords
+            // PatientId is the Patient table id (int), not the Identity user id (string)
+            var query = _context.MedicalRecords.AsNoTracking()
                 .Include(m => m.Appointment)
-                .ThenInclude(a => a.Doctor)
-                .Where(m => m.PatientId.ToString() == userId);
+                .ThenInclude(a => a!.Doctor)
+                .Where(m => m.PatientId == patient.Id);
 
             if (appointmentId != null)
-            {
                 query = query.Where(m => m.AppointmentId == appointmentId);
-            }
 
             var records = await query.OrderByDescending(m => m.CreatedAt).ToListAsync();
             return View(records);
@@ -37,10 +36,14 @@ namespace ClinicManagementSystem.Areas.Customer.Controllers
 
         public async Task<IActionResult> Details(int id)
         {
-            var record = await _context.MedicalRecords
+            var patient = await PatientHelper.FindAsync(_context, User);
+            if (patient == null) return NotFound();
+
+            // Only my own records: another patient's id returns 404
+            var record = await _context.MedicalRecords.AsNoTracking()
                 .Include(m => m.Appointment)
-                .ThenInclude(a => a.Doctor)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .ThenInclude(a => a!.Doctor)
+                .FirstOrDefaultAsync(m => m.Id == id && m.PatientId == patient.Id);
 
             if (record == null) return NotFound();
             return View(record);

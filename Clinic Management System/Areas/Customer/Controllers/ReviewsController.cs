@@ -1,12 +1,15 @@
-﻿using ClinicManagementSystem.Data;
+using ClinicManagementSystem.Areas.Customer.ViewModels;
+using ClinicManagementSystem.Data;
 using ClinicManagementSystem.Models;
+using ClinicManagementSystem.Utilities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
-namespace Clinic_Management_System.Areas.Customer.Controllers
+namespace ClinicManagementSystem.Areas.Customer.Controllers
 {
     [Area("Customer")]
+    [Authorize]
     public class ReviewsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -15,66 +18,87 @@ namespace Clinic_Management_System.Areas.Customer.Controllers
             _context = context;
         }
 
-        [HttpGet] 
-        public IActionResult Index()
+        // My reviews
+        [HttpGet]
+        public async Task<IActionResult> Index()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var patient = _context.Patients.FirstOrDefault(p => p.ApplicationUserId == userId);
+            var patient = await PatientHelper.FindAsync(_context, User);
             if (patient == null) return View(new List<Review>());
 
-            var myReviews = _context.Reviews
+            var myReviews = await _context.Reviews.AsNoTracking()
                 .Include(r => r.Doctor)
                 .Where(r => r.PatientId == patient.Id)
-                .ToList();
+                .OrderByDescending(r => r.Date)
+                .ToListAsync();
 
-            var myDoctors = _context.Appointments
-                .Where(a => a.PatientId == patient.Id)
-                .Include(a => a.Doctor)
-                .Select(a => a.Doctor)
-                .Distinct()
-                .ToList();
-
-            ViewBag.MyDoctors = myDoctors;
             return View(myReviews);
         }
 
+        // id = Appointment id (comes from the "Leave Review" button)
         [HttpGet]
         public async Task<IActionResult> Create(int id)
         {
-            // id ده هو Appointment Id
-            var appointment = await _context.Appointments
-                .Include(a => a.Doctor)
-                .FirstOrDefaultAsync(a => a.Id == id);
+            var (appointment, error) = await GetReviewableAppointmentAsync(id);
+            if (appointment == null) return error!;
 
-            if (appointment == null) return NotFound();
-
-            var review = new Review
+            return View(new ReviewInputVM
             {
-                DoctorId = appointment.DoctorId.Value,
-            };
-
-            ViewBag.DoctorName = appointment.Doctor.Name;
-            return View(review);
+                AppointmentId = appointment.Id,
+                DoctorName = appointment.Doctor?.Name ?? "Doctor"
+            });
         }
 
         [HttpPost]
-        public IActionResult Create(Review review)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(ReviewInputVM vm)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var patient = _context.Patients.FirstOrDefault(p => p.ApplicationUserId == userId);
+            var (appointment, error) = await GetReviewableAppointmentAsync(vm.AppointmentId);
+            if (appointment == null) return error!;
 
-            if (patient == null) return BadRequest("Patient not found");
+            vm.DoctorName = appointment.Doctor?.Name ?? "Doctor";
+            if (!ModelState.IsValid) return View(vm);
 
-            var hadVisit = _context.Appointments.Any(a => a.PatientId == patient.Id && a.DoctorId == review.DoctorId);
-            if (!hadVisit) return BadRequest("You can only review after a visit");
+            // DoctorId and PatientId are taken from the appointment / login, never from the form
+            _context.Reviews.Add(new Review
+            {
+                DoctorId = appointment.DoctorId!.Value,
+                PatientId = appointment.PatientId!.Value,
+                Rating = vm.Rating,
+                Comment = vm.Comment.Trim(),
+                Date = DateTime.Now
+            });
+            await _context.SaveChangesAsync();
 
-            review.PatientId = patient.Id;
-            review.Date = DateTime.Now;
+            TempData["Success"] = "Thanks for your review!";
+            return RedirectToAction(nameof(Index));
+        }
 
-            _context.Reviews.Add(review);
-            _context.SaveChanges();
+        // The appointment must be mine, completed, and I must not have reviewed this doctor yet.
+        private async Task<(Appointment? appointment, IActionResult? error)> GetReviewableAppointmentAsync(int appointmentId)
+        {
+            var patient = await PatientHelper.FindAsync(_context, User);
+            if (patient == null) return (null, Forbid());
 
-            return RedirectToAction("Index");
+            var appointment = await _context.Appointments.AsNoTracking()
+                .Include(a => a.Doctor)
+                .FirstOrDefaultAsync(a => a.Id == appointmentId && a.PatientId == patient.Id);
+
+            if (appointment == null || appointment.DoctorId == null) return (null, NotFound());
+
+            if (appointment.Status != AppointmentStatus.Completed)
+            {
+                TempData["Error"] = "You can review a doctor only after the visit is completed.";
+                return (null, RedirectToAction("UserAppointment", "Profile", new { area = "Customer" }));
+            }
+
+            var already = await _context.Reviews.AnyAsync(r => r.PatientId == patient.Id && r.DoctorId == appointment.DoctorId);
+            if (already)
+            {
+                TempData["Error"] = "You already reviewed this doctor.";
+                return (null, RedirectToAction(nameof(Index)));
+            }
+
+            return (appointment, null);
         }
     }
 }

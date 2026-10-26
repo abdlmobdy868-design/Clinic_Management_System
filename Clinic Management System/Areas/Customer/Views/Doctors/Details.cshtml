@@ -11,6 +11,10 @@
 </section>
 
 <div class="container py-4">
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
     <div class="row g-4">
 
         <!-- Left column: info + appointments + reviews -->
