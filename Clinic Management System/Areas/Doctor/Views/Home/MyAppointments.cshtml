@@ -1,0 +1,86 @@
+﻿@using ClinicManagementSystem.Utilities
+@model IEnumerable<ClinicManagementSystem.Models.Appointment>
+
+@{
+    ViewData["Title"] = "My Appointments";
+    Layout = "/Areas/Doctor/Views/_DoctorLayout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow border-0 rounded-4">
+                <div class="card-header bg-primary text-white p-4 rounded-top-4">
+                    <h3><i class="fas fa-user-injured me-2"></i> My Patients' Appointments</h3>
+                </div>
+                <div class="card-body p-4">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success">@TempData["Success"]</div>
+                    }
+
+                    @if (!Model.Any())
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                            <p class="text-muted fs-5">No patient appointments found at the moment.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Patient Name</th>
+                                        <th>Phone</th>
+                                        <th>Age / Gender</th>
+                                        <th>Appointment Time</th>
+                                        <th>Status</th>
+                                        <th class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model)
+                                    {
+                                        <tr>
+                                            <td class="fw-semibold">@(item.Patient?.Name ?? "Not Specified")</td>
+                                            <td>@(item.Patient?.Phone ?? "N/A")</td>
+                                            <td>@(item.Patient?.Age ?? 0) yrs / @(item.Patient?.Gender.ToString() ?? "N/A")</td>
+                                            <td>
+                                                <div><i class="far fa-calendar-alt text-primary me-1"></i> @item.StartTime.ToString("dd MMM yyyy")</div>
+                                                <small class="text-muted"><i class="far fa-clock me-1"></i> @item.StartTime.ToString("hh:mm tt") - @item.EndTime.ToString("hh:mm tt")</small>
+                                            </td>
+                                            <td>
+                                                @if (item.Status == AppointmentStatus.Confirmed)
+                                                {
+                                                    <span class="badge bg-success">Confirmed</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning text-dark">Pending</span>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                
+                                                <a asp-area="Doctor" asp-controller="Home" asp-action="CreateMedicalRecord" asp-route-appointmentId="@item.Id" class="btn btn-outline-primary btn-sm px-3">
+                                                    <i class="fas fa-file-medical me-1"></i> Medical Record & Rx
+                                                </a>
+                                                @if (item.Status == AppointmentStatus.Confirmed)
+                                                {
+                                                    <a asp-area="Doctor" asp-controller="Home" asp-action="EditMedicalRecord" asp-route-Id="@item.Id" class="btn btn-outline-primary btn-sm px-3">
+                                                        <i class="fas fa-file-medical me-1"></i> Edit
+                                                    </a>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

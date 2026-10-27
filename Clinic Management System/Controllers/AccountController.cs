@@ -148,8 +148,13 @@ namespace ClinicManagementSystem.Controllers
             {
                 return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
             }
-
+            if (await _userManager.IsInRoleAsync(user, CD.DOCTOR_ROLE)) 
+            {
+                return RedirectToAction("MyAppointments", "Home", new { area = "Doctor" });
+                
+            }
             return RedirectToAction("Index", "Home", new { area = "Customer" });
         }
+
     }
 }

@@ -1,0 +1,54 @@
+﻿@model ClinicManagementSystem.Models.MedicalRecord
+
+@{
+    ViewData["Title"] = "Edit Medical Record";
+    Layout = "/Areas/Doctor/Views/_DoctorLayout.cshtml";
+    var prescription = ViewBag.Prescription as ClinicManagementSystem.Models.Prescription;
+    var prescriptionItems = ViewBag.PrescriptionItems as List<ClinicManagementSystem.Models.PrescriptionItems>;
+}
+
+<!-- باقي الكود كما هو... وعند الوصول لقسم الأدوية: -->
+
+<div id="medicinesContainer">
+    @if (prescriptionItems != null && prescriptionItems.Any())
+    {
+        foreach (var item in prescriptionItems)
+        {
+            <div class="row g-2 medicine-row mb-2 align-items-center">
+                <div class="col-md-5">
+                    <input type="text" name="medicineNames" class="form-control" value="@item.MedicineName" required />
+                </div>
+                <div class="col-md-3">
+                    <input type="number" name="dosages" class="form-control" value="@item.Dosage" min="1" required />
+                </div>
+                <div class="col-md-3">
+                    <input type="text" name="durations" class="form-control" value="@item.Duration" required />
+                </div>
+                <div class="col-md-1 text-center">
+                    <button type="button" class="btn btn-outline-danger btn-sm remove-medicine">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="row g-2 medicine-row mb-2 align-items-center">
+            <div class="col-md-5">
+                <input type="text" name="medicineNames" class="form-control" placeholder="Medicine Name & Strength" required />
+            </div>
+            <div class="col-md-3">
+                <input type="number" name="dosages" class="form-control" placeholder="Dosage" min="1" required />
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="durations" class="form-control" placeholder="Duration" required />
+            </div>
+            <div class="col-md-1 text-center">
+                <button type="button" class="btn btn-outline-danger btn-sm remove-medicine" disabled>
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    }
+</div>
