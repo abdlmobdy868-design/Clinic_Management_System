@@ -6,7 +6,18 @@
 
 <div class="welcome mb-4" style="background:linear-gradient(90deg,#0b6fbf,#1ecbe1); border-radius:16px; color:white; padding:22px 28px;">
     <h5 class="fw-bold mb-1">Welcome back, Dr @User.Identity.Name 👋</h5>
-    <small>Today @DateTime.Now.ToString("dddd, dd MMMM yyyy") - You have @Model.TodayAppointments appointments today.</small>
+    <small>Today @DateTime.Now.ToString("dddd, dd MMMM yyyy") - You have @Model.TodayAppointments appointments today.
+
+        <a asp-area="Customer" asp-controller="Home" asp-action="Index" class="btn btn-primary" style="margin:10px">
+            <i class="fa fa-users"></i> Go to Customer Portal
+        </a>
+
+    
+       
+        <a asp-area="Doctor" asp-controller="Home" asp-action="MyAppointments" class="btn btn-success" style="margin:10px">
+            <i class="fa fa-user-md"></i> Go to Doctor Portal
+        </a>
+    </small>
 </div>
 <div class="row g-3 mb-4">
     <div class="col-12 col-sm-6 col-xl-3"><div class="stat-card"><div class="stat-icon i-blue"><i class="fas fa-hospital-user"></i></div><div><div class="stat-value">@Model.TotalPatients</div><div class="stat-label">Patients</div></div></div></div>

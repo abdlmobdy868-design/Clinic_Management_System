@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Clinic_Management_System.Areas.Doctor.Controllers
 {
     [Area("Doctor")]
-    [Authorize(Roles = $"{CD.DOCTOR_ROLE}")]
+    [Authorize(Roles = $"{CD.DOCTOR_ROLE}, {CD.ADMIN_ROLE}")]
     public class HomeController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -29,7 +29,7 @@ namespace Clinic_Management_System.Areas.Doctor.Controllers
             if(doctor == null)
             {
                 TempData["Error"] = "Doctor profile Can't be found";
-                return RedirectToAction("Index", "Account");
+                return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
             }
 
             var appointment = await _context.Appointments.Include(e => e.Patient)

@@ -183,6 +183,38 @@
             .rating {
                 color: #f59e0b
             }
+
+            
+                :root {
+                    --bg: #ffffff;
+                    --text: #000000;
+                    --card: #f8f9fa;
+                    --nav: #0d6efd;
+                }
+
+                body.dark-mode {
+               
+  --bg: #2c2c3e;       
+  --text: #e8e8e8;
+  --card: #3a3a4e;      
+  --nav: #24243e;
+}
+                }
+
+                body {
+                    background: var(--bg) !important;
+                    color: var(--text) !important;
+                }
+
+                .navbar {
+                    background: var(--nav) !important;
+                }
+
+                .card, .bg-white {
+                    background: var(--card) !important;
+                    color: var(--text) !important;
+                }
+       
     </style>
 </head>
 <body>
@@ -205,11 +237,33 @@
 
 
         <div style="flex:1"></div>
+    
         <a href="/Account/Logout" style="background:rgba(255,255,255,0.15)"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
     </div>
     <div class="main">
         @RenderBody()
     </div>
     @RenderSection("Scripts", required: false)
+    <script>
+            const toggle = document.getElementById('darkToggle');
+            const body = document.body;
+
+            // لو كان مفعل قبل كده
+            if (localStorage.getItem('darkMode') === 'enabled') {
+                body.classList.add('dark-mode');
+                toggle.textContent = '☀️';
+            }
+
+            toggle.addEventListener('click', () => {
+                body.classList.toggle('dark-mode');
+                if (body.classList.contains('dark-mode')) {
+                    localStorage.setItem('darkMode', 'enabled');
+                    toggle.textContent = '☀️';
+                } else {
+                    localStorage.setItem('darkMode', 'disabled');
+                    toggle.textContent = '🌙';
+                }
+            });
+    </script>
 </body>
 </html>
