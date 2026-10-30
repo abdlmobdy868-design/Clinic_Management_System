@@ -4,6 +4,7 @@
 @{
     ViewData["Title"] = "My Appointments";
     Layout = "/Areas/Doctor/Views/_DoctorLayout.cshtml";
+    var existingRecordIds = ViewBag.ExistingRecordIds as List<int> ?? new List<int>();
 }
 
 <div class="container py-4">
@@ -56,20 +57,36 @@
                                                 {
                                                     <span class="badge bg-success">Confirmed</span>
                                                 }
-                                                else
+                                                else if (item.Status == AppointmentStatus.Completed)
+                                                {
+                                                    <span class="badge bg-dark-subtle text-dark">Completed</span>
+                                                }
+                                                else if (item.Status == AppointmentStatus.Pending)
                                                 {
                                                     <span class="badge bg-warning text-dark">Pending</span>
-                                                }
+                                                }                                               
                                             </td>
                                             <td class="text-center">
-                                                
-                                                <a asp-area="Doctor" asp-controller="Home" asp-action="CreateMedicalRecord" asp-route-appointmentId="@item.Id" class="btn btn-outline-primary btn-sm px-3">
-                                                    <i class="fas fa-file-medical me-1"></i> Medical Record & Rx
-                                                </a>
-                                                @if (item.Status == AppointmentStatus.Confirmed)
+                                                @if (existingRecordIds.Contains(item.Id))
                                                 {
-                                                    <a asp-area="Doctor" asp-controller="Home" asp-action="EditMedicalRecord" asp-route-Id="@item.Id" class="btn btn-outline-primary btn-sm px-3">
-                                                        <i class="fas fa-file-medical me-1"></i> Edit
+                                                    
+                                                    <a asp-area="Doctor"
+                                                       asp-controller="Home"
+                                                       asp-action="EditMedicalRecord"
+                                                       asp-route-appointmentId="@item.Id"
+                                                       class="btn btn-outline-warning btn-sm px-3">
+                                                        <i class="fas fa-edit me-1"></i> Edit Record
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    
+                                                    <a asp-area="Doctor"
+                                                       asp-controller="Home"
+                                                       asp-action="CreateMedicalRecord"
+                                                       asp-route-appointmentId="@item.Id"
+                                                       class="btn btn-outline-primary btn-sm px-3">
+                                                        <i class="fas fa-file-medical me-1"></i> Create Rx
                                                     </a>
                                                 }
                                             </td>

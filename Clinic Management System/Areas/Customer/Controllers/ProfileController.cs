@@ -1,11 +1,12 @@
 using ClinicManagementSystem.Data;
 using ClinicManagementSystem.Models;
 using ClinicManagementSystem.Utilities;
-using ClinicManagementSystem.ViewModel; 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Stripe.Checkout;
+using Stripe;
 
 namespace ClinicManagementSystem.Areas.Customer.Controllers
 {
@@ -120,40 +121,103 @@ namespace ClinicManagementSystem.Areas.Customer.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // Simulated payment: records a Payment and confirms the appointment.
+
+        public async Task<IActionResult> Pay(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return NotFound();
+            var patient = await _context.Patients.FirstOrDefaultAsync(p => p.ApplicationUserId == user.Id);
+            if (patient == null) return NotFound();
+            var appointment = await _context.Appointments.Include(e => e.Patient).Include(e => e.Doctor).FirstOrDefaultAsync(e => e.PatientId == patient.Id && e.Id == id);
+            if (appointment == null) return NotFound();
+
+            var successUrl = Url.Action("PaymentSuccess", "Profile", new { area = "Customer", id = appointment.Id }, Request.Scheme);
+            var cancelUrl = Url.Action("UserAppointment", "Profile", new { area = "Customer" }, Request.Scheme);
+
+            var options = new SessionCreateOptions
+            {
+                AllowedPaymentMethodTypes = new List<string> { "card" },
+                LineItems = new List<SessionLineItemOptions>(),
+                Mode = "payment",
+                SuccessUrl = successUrl,
+                CancelUrl = cancelUrl,
+            };
+
+           
+
+            options.LineItems.Add(new SessionLineItemOptions()
+            {
+                PriceData = new SessionLineItemPriceDataOptions
+                {
+                    Currency = "egp",
+                    ProductData = new SessionLineItemPriceDataProductDataOptions
+                    {
+                        Name = appointment.Patient.Name,
+                        Description = appointment.Doctor.Name,
+                    },
+                    UnitAmount = (long)appointment.price*100,
+                },
+                Quantity = 1,
+            }
+            );
+    
+
+
+            var service = new SessionService();
+            var session = service.Create(options);
+            return Redirect(session.Url);
+        }
+
+
+
+        [HttpGet]
+        public async Task<IActionResult> PaymentSuccess(int id)
+        {
+            var patient = await PatientHelper.FindAsync(_context, User);
+            if (patient == null) return Forbid();
+
+            var appointment = await _context.Appointments
+                .Include(e => e.Doctor)
+                .FirstOrDefaultAsync(a => a.Id == id && a.PatientId == patient.Id);
+
+            if (appointment == null) return NotFound();
+
+           
+            return View(appointment);
+        }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Pay(int id)
+        public async Task<IActionResult> ConfirmPaymentPost(int id)
         {
             var patient = await PatientHelper.FindAsync(_context, User);
             if (patient == null) return Forbid();
 
             var appointment = await _context.Appointments
                 .FirstOrDefaultAsync(a => a.Id == id && a.PatientId == patient.Id);
+
             if (appointment == null) return NotFound();
 
-            if (appointment.Status != AppointmentStatus.Pending)
+           
+            if (appointment.Status == AppointmentStatus.Pending)
             {
-                TempData["Error"] = "This appointment can't be paid.";
-                return RedirectToAction(nameof(UserAppointment));
+                _context.Payments.Add(new Payment
+                {
+                    AppointmentId = appointment.Id,
+                    PatientId = patient.Id,
+                    Amount = appointment.price,
+                    PaymentMethod = Utilities.PaymentMethod.CreditCard,
+                    PaymentStatus = PaymentStatus.Paid
+                });
+
+                appointment.Status = AppointmentStatus.Confirmed;
+                await _context.SaveChangesAsync();
             }
 
-            _context.Payments.Add(new Payment
-            {
-                AppointmentId = appointment.Id,
-                PatientId = patient.Id,
-                Amount = appointment.price,
-                PaymentMethod = PaymentMethod.CreditCard,
-                PaymentStatus = PaymentStatus.Paid
-            });
-            appointment.Status = AppointmentStatus.Confirmed;
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = "Payment received. Your appointment is confirmed.";
+            TempData["Success"] = "Payment confirmed successfully!";
             return RedirectToAction(nameof(UserAppointment));
         }
 
-        // Cancelling frees the slot again so someone else can book it.
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Cancel(int id)
@@ -181,5 +245,6 @@ namespace ClinicManagementSystem.Areas.Customer.Controllers
 
             return RedirectToAction(nameof(UserAppointment));
         }
+
     }
 }

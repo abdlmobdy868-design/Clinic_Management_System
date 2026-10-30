@@ -21,22 +21,34 @@ namespace Clinic_Management_System.Areas.Doctor.Controllers
             _userManager = userManager;
         }
 
+        [HttpGet]
         public async Task<IActionResult> MyAppointments()
         {
             var user = await _userManager.GetUserAsync(User);
-            var doctor = _context.Doctors.FirstOrDefault(d=>d.ApplicationUserId == user.Id);
+            var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.ApplicationUserId == user.Id); // أضفنا await للأمان
 
-            if(doctor == null)
+            if (doctor == null)
             {
                 TempData["Error"] = "Doctor profile Can't be found";
                 return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
             }
 
-            var appointment = await _context.Appointments.Include(e => e.Patient)
-                .Where(e => e.DoctorId == doctor.Id && e.Patient.Id != null)
-                .OrderBy(e => e.AppointmentDateTime).ToListAsync();
+            var appointments = await _context.Appointments
+                .Include(e => e.Patient)
+                .Where(e => e.DoctorId == doctor.Id && e.PatientId != null) 
+                .OrderBy(e => e.AppointmentDateTime)
+                .ToListAsync();
+
             
-            return View(appointment);
+            var existingRecordAppointmentIds = await _context.MedicalRecords
+                .Where(m => m.DoctorId == doctor.Id && m.AppointmentId != null)
+                .Select(m => m.AppointmentId.Value)
+                .ToListAsync();
+
+            
+            ViewBag.ExistingRecordIds = existingRecordAppointmentIds;
+
+            return View(appointments);
         }
         [HttpGet]
         public async Task<IActionResult> CreateMedicalRecord(int appointmentId)
@@ -53,7 +65,6 @@ namespace Clinic_Management_System.Areas.Doctor.Controllers
 
             return View(appointment);
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateMedicalRecord(
@@ -125,26 +136,29 @@ namespace Clinic_Management_System.Areas.Doctor.Controllers
             }
 
             
-            appointment.Status = AppointmentStatus.Confirmed; 
+            appointment.Status = AppointmentStatus.Completed; 
             _context.Appointments.Update(appointment);
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Medical record and prescription saved successfully!";
             return RedirectToAction(nameof(MyAppointments));
         }
-        
+
         [HttpGet]
-        public async Task<IActionResult> EditMedicalRecord(int id) 
+        public async Task<IActionResult> EditMedicalRecord(int appointmentId)
         {
+            
             var medicalRecord = await _context.MedicalRecords
                 .Include(m => m.Patient)
                 .Include(m => m.Doctor)
                 .Include(m => m.Appointment)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.AppointmentId == appointmentId);
 
+            
             if (medicalRecord == null)
             {
-                return NotFound();
+                TempData["Error"] = "No medical record found for this appointment to edit.";
+                return RedirectToAction("MyAppointments");
             }
 
             
@@ -155,23 +169,22 @@ namespace Clinic_Management_System.Areas.Doctor.Controllers
 
             if (prescription != null)
             {
-                
                 prescriptionItems = await _context.PrescriptionItems
                     .Where(pi => pi.PrescriptionId == prescription.Id)
                     .ToListAsync();
             }
 
             ViewBag.Prescription = prescription;
-            ViewBag.PrescriptionItems = prescriptionItems; 
+            ViewBag.PrescriptionItems = prescriptionItems;
 
             return View(medicalRecord);
         }
 
-        
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditMedicalRecord(
-            int id,
+            int appointmentId, 
             string diagnosis,
             string? symptoms,
             string? medicalHistory,
@@ -182,13 +195,16 @@ namespace Clinic_Management_System.Areas.Doctor.Controllers
             string[]? durations,
             string? prescriptionNotes)
         {
-            var medicalRecord = await _context.MedicalRecords.FindAsync(id);
+            
+            var medicalRecord = await _context.MedicalRecords
+                .FirstOrDefaultAsync(m => m.AppointmentId == appointmentId);
+
             if (medicalRecord == null)
             {
                 return NotFound();
             }
 
-            
+           
             medicalRecord.Diagnosis = diagnosis;
             medicalRecord.Symptoms = symptoms;
             medicalRecord.MedicalHistory = medicalHistory;
