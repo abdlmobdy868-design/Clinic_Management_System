@@ -20,6 +20,26 @@ namespace Clinic_Management_System.Areas.Doctor.Controllers
             _context = context;
             _userManager = userManager;
         }
+        [HttpGet]
+        public async Task<IActionResult> Index()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.ApplicationUserId == user.Id);
+
+            if (doctor == null)
+            {
+                // لو ادمن داخل، وديه على داشبورد الادمن
+                if (User.IsInRole("ADMIN"))
+                {
+                    return RedirectToAction("Index", "Home", new { area = "Doctor" });
+                }
+                TempData["Error"] = "Doctor profile Can't be found";
+                return RedirectToAction("Index", "Home", new { area = "Customer" });
+            }
+
+            // لو لقي الدكتور، وديه على حجوزاته
+            return RedirectToAction("MyAppointments");
+        }
 
         [HttpGet]
         public async Task<IActionResult> MyAppointments()

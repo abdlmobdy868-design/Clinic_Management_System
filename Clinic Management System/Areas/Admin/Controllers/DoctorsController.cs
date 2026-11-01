@@ -23,6 +23,7 @@ namespace ClinicManagementSystem.Areas.Admin.Controllers
         public IActionResult Create()
         {
             ViewBag.Departments = new SelectList(_context.Departments, "Id", "Name");
+            ViewBag.Clinics = new SelectList(_context.Clinics, "Id", "Name");
             ViewBag.Specializations = GetSpecializations();
             return View();
         }
@@ -43,6 +44,7 @@ namespace ClinicManagementSystem.Areas.Admin.Controllers
             if (!ModelState.IsValid)
             {
                 ViewBag.Departments = new SelectList(_context.Departments, "Id", "Name", doctor.DepartmentId);
+               // ViewBag.Clinics = new SelectList(_context.Clinics, "Id", "Name", doctor.ClinicId);
                 ViewBag.Specializations = GetSpecializations();
                 return View(doctor);
             }
@@ -63,6 +65,7 @@ namespace ClinicManagementSystem.Areas.Admin.Controllers
                 {
                     foreach (var e in result.Errors) ModelState.AddModelError("", e.Description);
                     ViewBag.Departments = new SelectList(_context.Departments, "Id", "Name", doctor.DepartmentId);
+                   // ViewBag.Clinics = new SelectList(_context.Clinics, "Id", "Name", doctor.ClinicId);
                     ViewBag.Specializations = GetSpecializations();
                     return View(doctor);
                 }
